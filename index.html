@@ -192,6 +192,20 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .toolbar .control{flex:1;min-width:180px;padding:11px 13px;font-size:15px}
 .toolbar .btn{padding:11px 16px;font-size:14px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1px solid var(--line-strong);background:var(--white);border-radius:var(--r-pill);padding:7px 13px;font-size:13px;font-weight:700;color:var(--ink-soft);transition:.18s var(--ease)}
+.chip:hover{border-color:var(--steel)}
+.chip[aria-pressed="true"]{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.range-inputs{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:16px}
+.range-inputs label{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:12px;font-weight:700;color:var(--ink-faint)}
+.range-inputs .control{padding:9px 10px;font-size:14px;min-width:0}
+.range-inputs .btn{padding:10px 12px;font-size:13px}
+@media (max-width:420px){ .range-inputs{grid-template-columns:1fr 1fr} .range-inputs .btn{grid-column:1/-1} }
+.breakdown{padding:8px 14px 10px;background:var(--gold-soft);border-bottom:1px solid var(--line)}
+.bd-title{font-size:11.5px;color:var(--ink-faint);font-weight:700;margin-bottom:4px}
+.bd-row{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;font-weight:700;padding:3px 0}
+.bd-row .bn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bd-row .bh{font-variant-numeric:tabular-nums;color:var(--navy);flex:none}
 
 /* ===== Settings lists ===== */
 .list{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;margin-bottom:12px;max-height:320px;overflow-y:auto}
@@ -345,10 +359,24 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <div class="seg" role="group" aria-label="mode">
         <button type="button" id="modeClient" aria-pressed="true" data-i18n="byClient">לפי לקוח</button>
         <button type="button" id="modeDate" aria-pressed="false" data-i18n="byDate">לפי תאריך</button>
+        <button type="button" id="modeCat" aria-pressed="false" data-i18n="byCategory">לפי קטגוריה</button>
       </div>
       <div class="seg sub hidden" id="periodSeg" role="group" aria-label="period">
         <button type="button" id="periodMonth" aria-pressed="true" data-i18n="monthly">חודשי</button>
         <button type="button" id="periodQuarter" aria-pressed="false" data-i18n="quarterly">רבעוני</button>
+      </div>
+
+      <div class="chips" role="group" aria-label="range presets">
+        <button type="button" class="chip" data-preset="month" data-i18n="presetMonth">החודש</button>
+        <button type="button" class="chip" data-preset="prev" data-i18n="presetPrev">חודש שעבר</button>
+        <button type="button" class="chip" data-preset="quarter" data-i18n="presetQuarter">הרבעון</button>
+        <button type="button" class="chip" data-preset="year" data-i18n="presetYear">השנה</button>
+        <button type="button" class="chip" data-preset="all" data-i18n="presetAll">הכל</button>
+      </div>
+      <div class="range-inputs">
+        <label><span data-i18n="fromDate">מתאריך</span><input type="date" class="control" id="rangeFrom"></label>
+        <label><span data-i18n="toDate">עד תאריך</span><input type="date" class="control" id="rangeTo"></label>
+        <button type="button" class="btn btn-ghost" id="rangeClear" data-i18n="clearRange">ניקוי</button>
       </div>
 
       <div class="stats">
@@ -549,7 +577,10 @@ const I18N = {
     errHours:"יש להזין מספר שעות (ברבעי שעה)",
     saved:"הדיווח נשמר", updated:"הדיווח עודכן", deleted:"הדיווח נמחק",
     confirmDelete:"למחוק את הדיווח?",
-    byClient:"לפי לקוח", byDate:"לפי תאריך", monthly:"חודשי", quarterly:"רבעוני",
+    byClient:"לפי לקוח", byDate:"לפי תאריך", byCategory:"לפי קטגוריה", monthly:"חודשי", quarterly:"רבעוני",
+    presetMonth:"החודש", presetPrev:"חודש שעבר", presetQuarter:"הרבעון", presetYear:"השנה", presetAll:"הכל",
+    fromDate:"מתאריך", toDate:"עד תאריך", clearRange:"ניקוי",
+    bdByPeriod:"פירוט לפי תקופה", bdByClient:"פירוט לפי לקוח",
     totalHours:"סך שעות", totalEntries:"דיווחים", searchPh:"חיפוש לקוח…",
     export:"ייצוא CSV", noData:"אין דיווחים להצגה", entries:"דיווחים", entry:"דיווח",
     edit:"עריכה", hoursShort:"ש׳",
@@ -611,7 +642,10 @@ const I18N = {
     errHours:"Enter hours in quarter-hour steps",
     saved:"Entry saved", updated:"Entry updated", deleted:"Entry deleted",
     confirmDelete:"Delete this entry?",
-    byClient:"By client", byDate:"By date", monthly:"Monthly", quarterly:"Quarterly",
+    byClient:"By client", byDate:"By date", byCategory:"By activity", monthly:"Monthly", quarterly:"Quarterly",
+    presetMonth:"This month", presetPrev:"Last month", presetQuarter:"This quarter", presetYear:"This year", presetAll:"All",
+    fromDate:"From", toDate:"To", clearRange:"Clear",
+    bdByPeriod:"Breakdown by period", bdByClient:"Breakdown by client",
     totalHours:"Total hours", totalEntries:"Entries", searchPh:"Search client…",
     export:"Export CSV", noData:"No entries to display", entries:"entries", entry:"entry",
     edit:"Edit", hoursShort:"h",
@@ -665,6 +699,8 @@ const state = {
   dashMode: "client",
   period: "month",
   search: "",
+  rangeFrom: "",
+  rangeTo: "",
   editingId: null,
   openGroups: {}
 };
@@ -891,12 +927,43 @@ function savePrefs(){
   if(state.user) store(K.prefs(state.user), { dashMode: state.dashMode, period: state.period });
 }
 function applyDashPrefs(){
-  const byClient = state.dashMode === "client";
-  $("#modeClient").setAttribute("aria-pressed", byClient);
-  $("#modeDate").setAttribute("aria-pressed", !byClient);
-  $("#periodSeg").classList.toggle("hidden", byClient);
+  const m = state.dashMode;
+  $("#modeClient").setAttribute("aria-pressed", m === "client");
+  $("#modeDate").setAttribute("aria-pressed", m === "date");
+  $("#modeCat").setAttribute("aria-pressed", m === "cat");
+  $("#periodSeg").classList.toggle("hidden", m === "cat");
   $("#periodMonth").setAttribute("aria-pressed", state.period === "month");
   $("#periodQuarter").setAttribute("aria-pressed", state.period === "quarter");
+  syncRangeUI();
+}
+/* Date range filter (dashboard + CSV) — not persisted, every session starts with "all" */
+function presetRange(name){
+  const d = new Date();
+  const y = d.getFullYear(), m = d.getMonth();
+  const iso = (yy,mm,dd) => `${yy}-${String(mm+1).padStart(2,"0")}-${String(dd).padStart(2,"0")}`;
+  const lastDay = (yy,mm) => new Date(yy, mm+1, 0).getDate();
+  if(name === "month")   return [iso(y,m,1), iso(y,m,lastDay(y,m))];
+  if(name === "prev"){ const py = m === 0 ? y-1 : y, pm = m === 0 ? 11 : m-1; return [iso(py,pm,1), iso(py,pm,lastDay(py,pm))]; }
+  if(name === "quarter"){ const qs = Math.floor(m/3)*3; return [iso(y,qs,1), iso(y,qs+2,lastDay(y,qs+2))]; }
+  if(name === "year")    return [iso(y,0,1), iso(y,11,31)];
+  return ["",""];
+}
+function syncRangeUI(){
+  $("#rangeFrom").value = state.rangeFrom;
+  $("#rangeTo").value = state.rangeTo;
+  document.querySelectorAll("[data-preset]").forEach(b => {
+    const [f,to] = presetRange(b.dataset.preset);
+    b.setAttribute("aria-pressed", f === state.rangeFrom && to === state.rangeTo);
+  });
+}
+function inRange(r){
+  if(state.rangeFrom && r.date < state.rangeFrom) return false;
+  if(state.rangeTo && r.date > state.rangeTo) return false;
+  return true;
+}
+function filteredRecords(){
+  const q = norm(state.search);
+  return state.records.filter(r => inRange(r) && (!q || norm(r.client).includes(q)));
 }
 
 function logout(){
@@ -1406,31 +1473,46 @@ function periodLabel(key){
   const [y,q] = key.split("-Q");
   return state.lang === "he" ? `${t().quarter} ${q} ${y}` : `Q${q} ${y}`;
 }
+const sumHours = rows => rows.reduce((s,r) => s + r.hours, 0);
+/* Sub-totals shown inside an open group: client → per period, date / category → per client */
+function breakdownHTML(rows){
+  const mode = state.dashMode;
+  const keyOf = mode === "client" ? (r => periodKey(r.date)) : (r => r.client);
+  const sub = {};
+  rows.forEach(r => { sub[keyOf(r)] = (sub[keyOf(r)] || 0) + r.hours; });
+  const keys = Object.keys(sub);
+  if(keys.length < 2) return "";
+  if(mode === "client") keys.sort().reverse(); else keys.sort((a,b) => sub[b] - sub[a]);
+  const title = mode === "client" ? t().bdByPeriod : t().bdByClient;
+  return `<div class="breakdown"><div class="bd-title">${esc(title)}</div>${keys.map(k => `<div class="bd-row">
+      <span class="bn">${esc(mode === "client" ? periodLabel(k) : k)}</span>
+      <span class="bh">${fmtHours(sub[k])} ${esc(t().hoursShort)}</span>
+    </div>`).join("")}</div>`;
+}
 function renderDash(){
-  const q = norm(state.search);
-  let recs = state.records.slice();
-  if(q) recs = recs.filter(r => norm(r.client).includes(q));
+  const recs = filteredRecords();
 
-  $("#statHours").textContent = fmtHours(recs.reduce((s,r) => s + r.hours, 0));
+  $("#statHours").textContent = fmtHours(sumHours(recs));
   $("#statCount").textContent = recs.length;
 
+  const mode = state.dashMode;
   const groups = {};
   recs.forEach(r => {
-    const key = state.dashMode === "client" ? r.client : periodKey(r.date);
+    const key = mode === "client" ? r.client : mode === "cat" ? r.category : periodKey(r.date);
     (groups[key] = groups[key] || []).push(r);
   });
   let keys = Object.keys(groups);
-  if(state.dashMode === "client") keys.sort((a,b) => groups[b].reduce((s,r)=>s+r.hours,0) - groups[a].reduce((s,r)=>s+r.hours,0));
-  else keys.sort().reverse();
+  if(mode === "date") keys.sort().reverse();
+  else keys.sort((a,b) => sumHours(groups[b]) - sumHours(groups[a]));
 
   const body = $("#dashBody");
   if(!keys.length){ body.innerHTML = `<div class="empty">${esc(t().noData)}</div>`; return; }
 
   body.innerHTML = keys.map(k => {
     const rows = groups[k].slice().sort((a,b) => b.date.localeCompare(a.date));
-    const sum = rows.reduce((s,r) => s + r.hours, 0);
+    const sum = sumHours(rows);
     const open = !!state.openGroups[k];
-    const name = state.dashMode === "client" ? k : periodLabel(k);
+    const name = mode === "client" ? k : mode === "cat" ? catLabel(k) : periodLabel(k);
     const count = rows.length + " " + (rows.length === 1 ? t().entry : t().entries);
     return `<div class="group">
       <button type="button" class="group-head" data-group="${esc(k)}" aria-expanded="${open}">
@@ -1439,7 +1521,7 @@ function renderDash(){
         <span class="gmeta">${esc(count)}</span>
         <span class="ghours">${fmtHours(sum)} ${esc(t().hoursShort)}</span>
       </button>
-      <div class="rows ${open ? "" : "hidden"}">${rows.map(r => rowHTML(r, state.dashMode !== "client")).join("")}</div>
+      <div class="rows ${open ? "" : "hidden"}">${breakdownHTML(rows)}${rows.map(r => rowHTML(r, mode !== "client")).join("")}</div>
     </div>`;
   }).join("");
 }
@@ -1605,8 +1687,7 @@ function toast(msg){
 }
 function exportCSV(){
   const C = t().csv;
-  const q = norm(state.search);
-  const recs = state.records.filter(r => !q || norm(r.client).includes(q)).sort((a,b) => a.date.localeCompare(b.date));
+  const recs = filteredRecords().sort((a,b) => a.date.localeCompare(b.date));
   const cell = s => `"${String(s == null ? "" : s).replace(/"/g,'""')}"`;
   const csv = "\uFEFF" + [[C.date,C.client,C.cats,C.hours,C.notes].map(cell).join(",")]
     .concat(recs.map(r => [fmtDate(r.date), r.client, catLabel(r.category), fmtHours(r.hours), r.notes].map(cell).join(","))).join("\r\n");
@@ -1634,7 +1715,7 @@ $("#suPin").addEventListener("keydown", e => { if(e.key === "Enter") doSetup(); 
 $("#toPassword").addEventListener("click", () => showPanel("loginPanel"));
 $("#toSetup").addEventListener("click", () => showPanel("setupPanel"));
 $("#toSetupFromPin").addEventListener("click", () => showPanel("setupPanel"));
-$("#toLogin").addEventListener("click", () => openLoginScreen());
+$("#toLogin").addEventListener("click", () => showPanel("loginPanel"));
 $("#secBtn").addEventListener("click", updateSecurity);
 
 $("#saveBtn").addEventListener("click", saveEntry);
@@ -1659,6 +1740,18 @@ $("#modeDate").addEventListener("click", () => {
   state.dashMode = "date"; state.openGroups = {};
   applyDashPrefs(); savePrefs(); renderDash();
 });
+$("#modeCat").addEventListener("click", () => {
+  state.dashMode = "cat"; state.openGroups = {};
+  applyDashPrefs(); savePrefs(); renderDash();
+});
+function setRange(from, to){
+  state.rangeFrom = from || ""; state.rangeTo = to || "";
+  syncRangeUI(); renderDash();
+}
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => setRange(...presetRange(b.dataset.preset))));
+$("#rangeFrom").addEventListener("change", e => setRange(e.target.value, state.rangeTo));
+$("#rangeTo").addEventListener("change", e => setRange(state.rangeFrom, e.target.value));
+$("#rangeClear").addEventListener("click", () => setRange("",""));
 $("#periodMonth").addEventListener("click", () => {
   state.period = "month"; state.openGroups = {};
   applyDashPrefs(); savePrefs(); renderDash();
