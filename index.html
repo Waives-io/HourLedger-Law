@@ -67,6 +67,10 @@ button{cursor:pointer}
 .login-brand .suffix::before,.brand .suffix::before{content:"·";margin:0 4px;color:var(--steel)}
 .link-btn{display:block;width:100%;margin-top:14px;border:0;background:transparent;color:var(--navy);font-size:13.5px;font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:6px}
 .login-sep{height:1px;background:var(--line);margin:18px 0}
+.control.pin{letter-spacing:8px;text-align:center;font-size:22px;font-weight:700}
+.who{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 13px;margin-bottom:16px;font-size:13.5px;font-weight:700;text-align:center}
+.who span{display:block;font-size:12px;color:var(--ink-faint);font-weight:600;margin-top:2px;direction:ltr}
+.sec-form{display:flex;flex-direction:column;gap:10px;margin-top:6px}
 .login-brand .tag{font-size:13.5px;font-weight:600;color:var(--ink-soft)}
 .login-note{margin-top:16px;font-size:12.5px;color:var(--ink-faint);text-align:center;font-weight:600}
 
@@ -237,51 +241,66 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 <div class="login" id="loginView">
   <div class="login-card">
     <div class="login-brand">
-      <img id="logoLogin" alt="HourLedger">
+      <img id="logoLogin" alt="HourLedger-Law">
       <div class="name">HourLedger<span class="suffix">Law</span></div>
       <div class="tag" data-i18n="loginTag">ניהול שעות למשרדי עורכי דין</div>
     </div>
 
-    <div id="loginPanel">
-    <div class="field">
-      <label for="loginEmail" data-i18n="fEmail">אימייל</label>
-      <input type="email" id="loginEmail" class="control" autocomplete="username" inputmode="email" dir="ltr">
-    </div>
-    <div class="field">
-      <label for="loginPass" data-i18n="fPass">סיסמה</label>
-      <input type="password" id="loginPass" class="control" autocomplete="current-password" dir="ltr">
-      <span class="err" id="loginErr"></span>
-    </div>
-    <button type="button" class="btn btn-primary btn-block" id="loginBtn" data-i18n="login">כניסה</button>
-    <div class="login-note" data-i18n="loginNote">הכניסה נדרשת פעם אחת — המכשיר יזכור אותך</div>
-    <button type="button" class="link-btn" id="toSignup" data-i18n="toSignup">משרד חדש? פתיחת חשבון</button>
+    <!-- quick unlock with the access code -->
+    <div id="pinPanel" class="hidden">
+      <div class="who" id="pinWho"></div>
+      <div class="field">
+        <label for="pinInput" data-i18n="fPin">קוד כניסה</label>
+        <input type="password" id="pinInput" class="control pin" inputmode="numeric" autocomplete="off" maxlength="6" dir="ltr">
+        <span class="err" id="pinErr"></span>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" id="pinBtn" data-i18n="enter">כניסה</button>
+      <button type="button" class="link-btn" id="toPassword" data-i18n="usePassword">כניסה עם סיסמה</button>
+      <button type="button" class="link-btn" id="toSetupFromPin" data-i18n="toSetup">פתיחת חשבון חדש</button>
     </div>
 
-    <div id="signupPanel" class="hidden">
-    <div class="field">
-      <label for="suFirm" data-i18n="fFirm">שם המשרד</label>
-      <input type="text" id="suFirm" class="control">
+    <!-- email + password -->
+    <div id="loginPanel" class="hidden">
+      <div class="field">
+        <label for="loginEmail" data-i18n="fEmail">אימייל</label>
+        <input type="email" id="loginEmail" class="control" autocomplete="username" inputmode="email" dir="ltr">
+      </div>
+      <div class="field">
+        <label for="loginPass" data-i18n="fPass">סיסמה</label>
+        <input type="password" id="loginPass" class="control" autocomplete="current-password" dir="ltr">
+        <span class="err" id="loginErr"></span>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" id="loginBtn" data-i18n="login">כניסה</button>
+      <button type="button" class="link-btn" id="toSetup" data-i18n="toSetup">פתיחת חשבון חדש</button>
     </div>
-    <div class="field">
-      <label for="suEmail" data-i18n="fEmail">אימייל</label>
-      <input type="email" id="suEmail" class="control" autocomplete="username" inputmode="email" dir="ltr">
+
+    <!-- first run on this device -->
+    <div id="setupPanel" class="hidden">
+      <div class="field">
+        <label for="suFirm" data-i18n="fFirm">שם המשרד</label>
+        <input type="text" id="suFirm" class="control">
+      </div>
+      <div class="field">
+        <label for="suEmail" data-i18n="fEmail">אימייל</label>
+        <input type="email" id="suEmail" class="control" autocomplete="username" inputmode="email" dir="ltr">
+      </div>
+      <div class="field">
+        <label for="suPass" data-i18n="fPassNew">סיסמה</label>
+        <input type="password" id="suPass" class="control" autocomplete="new-password" dir="ltr">
+      </div>
+      <div class="field">
+        <label for="suPass2" data-i18n="fPass2">אימות סיסמה</label>
+        <input type="password" id="suPass2" class="control" autocomplete="new-password" dir="ltr">
+      </div>
+      <div class="field">
+        <label for="suPin" data-i18n="fPinNew">קוד כניסה מהיר<span class="hint" data-i18n="fPinHint">4 ספרות, לכניסות הבאות במכשיר הזה</span></label>
+        <input type="password" id="suPin" class="control pin" inputmode="numeric" maxlength="6" autocomplete="off" dir="ltr">
+        <span class="err" id="setupErr"></span>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" id="setupBtn" data-i18n="createAccount">פתיחת חשבון</button>
+      <div class="login-note" data-i18n="setupNote">החשבון נשמר במכשיר הזה. אחרי הפתיחה מזינים את רשימת הלקוחות</div>
+      <button type="button" class="link-btn" id="toLogin" data-i18n="toLogin">כבר יש חשבון? כניסה</button>
     </div>
-    <div class="field">
-      <label for="suPass" data-i18n="fPassNew">סיסמה חדשה</label>
-      <input type="password" id="suPass" class="control" autocomplete="new-password" dir="ltr">
-    </div>
-    <div class="field">
-      <label for="suPass2" data-i18n="fPass2">אימות סיסמה</label>
-      <input type="password" id="suPass2" class="control" autocomplete="new-password" dir="ltr">
-    </div>
-    <div class="field">
-      <label for="suCode" data-i18n="fCode">קוד הרשמה</label>
-      <input type="text" id="suCode" class="control" dir="ltr">
-      <span class="err" id="signupErr"></span>
-    </div>
-    <button type="button" class="btn btn-primary btn-block" id="signupBtn" data-i18n="signup">פתיחת חשבון</button>
-    <div class="login-note" data-i18n="signupNote">אחרי פתיחת החשבון מזינים את רשימת הלקוחות במסך ההגדרות</div>
-    <button type="button" class="link-btn" id="toLogin" data-i18n="toLogin">כבר יש חשבון? כניסה</button>
   </div>
 </div>
 
@@ -380,6 +399,20 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
         <button type="button" class="btn btn-danger" id="logoutBtn" data-i18n="logout">התנתקות</button>
       </div>
     </div>
+
+    <div class="card" id="securityCard">
+      <h1 class="card-title" data-i18n="securityTitle">סיסמה וקוד כניסה</h1>
+      <p class="card-sub" data-i18n="securitySub">שינוי הפרטים של החשבון במכשיר הזה</p>
+      <div class="sec-form">
+        <input type="password" class="control" id="curPass" placeholder="סיסמה נוכחית" data-i18n-ph="phCurPass" autocomplete="current-password" dir="ltr">
+        <input type="password" class="control" id="newPass" placeholder="סיסמה חדשה" data-i18n-ph="phNewPass" autocomplete="new-password" dir="ltr">
+        <input type="password" class="control" id="newPass2" placeholder="אימות סיסמה חדשה" data-i18n-ph="phNewPass2" autocomplete="new-password" dir="ltr">
+        <input type="password" class="control pin" id="newPin" placeholder="0000" inputmode="numeric" maxlength="6" autocomplete="off" dir="ltr">
+        <span class="hint" data-i18n="secHint">אפשר לעדכן רק סיסמה, רק קוד כניסה, או את שניהם</span>
+        <button type="button" class="btn btn-primary" id="secBtn" data-i18n="updateSecurity">עדכון</button>
+        <span class="err" id="secErr"></span>
+      </div>
+    </div>
   </section>
 
 </main>
@@ -431,7 +464,6 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 
 const APP_VERSION = "3.0";
 const DEFAULT_WEBHOOK = "https://hook.eu1.make.com/3f461zbp81thyc76u95jzfs3yn6i5p1r";
-const SIGNUP_CODE = "WAIVES-2026";
 const LOGO_SRC = "data:image/png;base64,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";
 
 /* ---------- Tenants ---------- */
@@ -465,16 +497,12 @@ const ORGS = {
   }
 };
 
-/* ---------- Users ----------
-   hash = SHA-256 of  email(lowercase) + ":" + password
-   To add a user: open the app, run in the browser console
-   hourLedgerHash("someone@firm.co.il", "their-password")
-   and paste the result here.
+/* ---------- Built-in demo account ----------
+   Every other account is created by the user on their own device
+   (first run → "פתיחת חשבון חדש"). Nothing is hard-coded per firm.
 --------------------------------------------------------- */
 const USERS = [
-  { email:"office@law-weinberg.com", org:"weinberg", hash:"a4a19a722b2bfa74f1a5323cd4dc8653ac423ec7182e564b49905c48aea7392a" },
-  { email:"galli@waives.co.il",      org:"weinberg", hash:"65562440d12eeb523b955173514bbb8fdae93dc828848ddaf19ac6ad957dd67e" },
-  { email:"demo@hourledger.app",     org:"demo",     hash:"1ee2df024a87a59469c3bde4d36f5b8cda7ebcc315c7c8624613df5805616cfc" }
+  { email:"demo@hourledger.app", org:"demo", hash:"1ee2df024a87a59469c3bde4d36f5b8cda7ebcc315c7c8624613df5805616cfc" }
 ];
 
 /* ---------- i18n ---------- */
@@ -484,10 +512,19 @@ const I18N = {
     fEmail:"אימייל", fPass:"סיסמה", login:"כניסה",
     loginNote:"הכניסה נדרשת פעם אחת — המכשיר יזכור אותך",
     errLogin:"אימייל או סיסמה שגויים", errFields:"יש למלא את כל השדות",
-    toSignup:"משרד חדש? פתיחת חשבון", toLogin:"כבר יש חשבון? כניסה",
-    fFirm:"שם המשרד", fPassNew:"סיסמה חדשה", fPass2:"אימות סיסמה", fCode:"קוד הרשמה",
-    signup:"פתיחת חשבון", signupNote:"אחרי פתיחת החשבון מזינים את רשימת הלקוחות במסך ההגדרות",
-    errEmail:"כתובת אימייל לא תקינה", errCode:"קוד הרשמה שגוי",
+    toLogin:"כבר יש חשבון? כניסה", toSetup:"פתיחת חשבון חדש", usePassword:"כניסה עם סיסמה",
+    fFirm:"שם המשרד", fPassNew:"סיסמה", fPass2:"אימות סיסמה",
+    fPin:"קוד כניסה", fPinNew:"קוד כניסה מהיר", fPinHint:"4 ספרות, לכניסות הבאות במכשיר הזה",
+    enter:"כניסה", createAccount:"פתיחת חשבון",
+    setupNote:"החשבון נשמר במכשיר הזה. אחרי הפתיחה מזינים את רשימת הלקוחות",
+    errEmail:"כתובת אימייל לא תקינה",
+    errPin:"קוד כניסה שגוי", errPinEmpty:"יש להזין קוד כניסה", errPinFormat:"קוד הכניסה חייב להיות 4 עד 6 ספרות",
+    securityTitle:"סיסמה וקוד כניסה", securitySub:"שינוי הפרטים של החשבון במכשיר הזה",
+    phCurPass:"סיסמה נוכחית", phNewPass:"סיסמה חדשה", phNewPass2:"אימות סיסמה חדשה",
+    secHint:"אפשר לעדכן רק סיסמה, רק קוד כניסה, או את שניהם",
+    updateSecurity:"עדכון", securityUpdated:"הפרטים עודכנו",
+    errNothing:"אין מה לעדכן", errCurPass:"יש להזין את הסיסמה הנוכחית",
+    errCurWrong:"הסיסמה הנוכחית שגויה", errBuiltIn:"לא ניתן לשנות את פרטי חשבון הדמו",
     errShortPass:"הסיסמה חייבת להיות באורך 6 תווים לפחות", errMatch:"הסיסמאות אינן זהות",
     errTaken:"כבר קיים חשבון עם האימייל הזה", welcome:"החשבון נפתח — אפשר להזין לקוחות",
     clientsAdded:"נוספו לקוחות:", skippedDupes:"דולגו כפילויות:",
@@ -537,10 +574,19 @@ const I18N = {
     fEmail:"Email", fPass:"Password", login:"Sign in",
     loginNote:"Sign in once — this device will remember you",
     errLogin:"Wrong email or password", errFields:"Fill in every field",
-    toSignup:"New office? Create an account", toLogin:"Already have an account? Sign in",
-    fFirm:"Office name", fPassNew:"New password", fPass2:"Confirm password", fCode:"Signup code",
-    signup:"Create account", signupNote:"After signing up, add your client list in Settings",
-    errEmail:"Invalid email address", errCode:"Wrong signup code",
+    toLogin:"Already have an account? Sign in", toSetup:"Create a new account", usePassword:"Sign in with password",
+    fFirm:"Office name", fPassNew:"Password", fPass2:"Confirm password",
+    fPin:"Access code", fPinNew:"Quick access code", fPinHint:"4 digits, for next logins on this device",
+    enter:"Enter", createAccount:"Create account",
+    setupNote:"The account is stored on this device. Next, add your client list",
+    errEmail:"Invalid email address",
+    errPin:"Wrong access code", errPinEmpty:"Enter the access code", errPinFormat:"The code must be 4 to 6 digits",
+    securityTitle:"Password & access code", securitySub:"Change this device's account details",
+    phCurPass:"Current password", phNewPass:"New password", phNewPass2:"Confirm new password",
+    secHint:"Update the password, the access code, or both",
+    updateSecurity:"Update", securityUpdated:"Details updated",
+    errNothing:"Nothing to update", errCurPass:"Enter your current password",
+    errCurWrong:"Current password is wrong", errBuiltIn:"The demo account cannot be changed",
     errShortPass:"Password must be at least 6 characters", errMatch:"Passwords do not match",
     errTaken:"An account with this email already exists", welcome:"Account created — add your clients",
     clientsAdded:"Clients added:", skippedDupes:"Duplicates skipped:",
@@ -588,14 +634,15 @@ const I18N = {
 };
 
 /* ---------- Storage ---------- */
-const KA = { accounts:"hourledger.accounts.v1", orgs:"hourledger.orgs.v1" };
+const KA = { accounts:"hourledger.accounts.v1", orgs:"hourledger.orgs.v1", last:"hourledger.last.v1" };
 const K = {
   lang:"moneh.lang.v2",
   session:"moneh.session.v2",
   rec: o => "moneh.records.v2." + o,
   cli: o => "moneh.clients.v2." + o,
   cat: o => "moneh.cats.v2." + o,
-  out: o => "moneh.outbox.v2." + o
+  out: o => "moneh.outbox.v2." + o,
+  prefs: e => "hourledger.prefs.v1." + e
 };
 function load(key, fallback){
   try{ const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); }
@@ -670,56 +717,102 @@ function lev(a,b){
 }
 
 /* ============================================================
-   Auth
+   Auth — accounts live on this device only
    ============================================================ */
 async function sha256(text){
   if(!(window.crypto && window.crypto.subtle)) return null;
   const buf = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
 }
-window.hourLedgerHash = async (email, pass) => await sha256(String(email).toLowerCase() + ":" + pass);
+const passHash = (email, pass) => sha256(String(email).toLowerCase() + ":" + pass);
+const pinHash  = (email, pin)  => sha256(String(email).toLowerCase() + ":pin:" + pin);
+
+function showPanel(which){
+  ["pinPanel","loginPanel","setupPanel"].forEach(id => {
+    $("#" + id).classList.toggle("hidden", id !== which);
+  });
+  const first = { pinPanel:"#pinInput", loginPanel:"#loginEmail", setupPanel:"#suFirm" }[which];
+  const el = $(first);
+  if(el) setTimeout(() => el.focus(), 30);
+}
+function openLoginScreen(){
+  const accs = accountsList();
+  const last = load(KA.last, null);
+  const acc = accs.find(a => a.email === last) || accs[0];
+  if(acc && acc.pinHash){
+    $("#pinWho").innerHTML = `${esc(orgNameOf(acc.org))}<span>${esc(acc.email)}</span>`;
+    $("#pinPanel").dataset.email = acc.email;
+    showPanel("pinPanel");
+  }else if(accs.length){
+    showPanel("loginPanel");
+  }else{
+    showPanel("setupPanel");
+  }
+}
+function orgNameOf(org){
+  if(ORGS[org]) return ORGS[org][state.lang] || ORGS[org].he;
+  const d = dynOrgs()[org];
+  return d ? (d[state.lang] || d.he) : "";
+}
+
+async function doPin(){
+  const email = $("#pinPanel").dataset.email;
+  const pin = $("#pinInput").value.trim();
+  const err = $("#pinErr");
+  err.textContent = "";
+  if(!pin){ err.textContent = t().errPinEmpty; return; }
+  const acc = findAccount(email);
+  const h = await pinHash(email, pin);
+  if(h === null){ err.textContent = t().errCrypto; return; }
+  if(!acc || acc.pinHash !== h){
+    err.textContent = t().errPin;
+    $("#pinInput").value = "";
+    $("#pinInput").focus();
+    return;
+  }
+  $("#pinInput").value = "";
+  store(K.session, { email:acc.email, org:acc.org, at:new Date().toISOString() });
+  startSession(acc.email, acc.org);
+}
 
 async function doLogin(){
   const email = $("#loginEmail").value.trim().toLowerCase();
   const pass  = $("#loginPass").value;
-  const errEl = $("#loginErr");
-  errEl.textContent = "";
-  if(!email || !pass){ errEl.textContent = t().errFields; return; }
-  const hash = await sha256(email + ":" + pass);
-  if(hash === null){ errEl.textContent = t().errCrypto; return; }
+  const err   = $("#loginErr");
+  err.textContent = "";
+  if(!email || !pass){ err.textContent = t().errFields; return; }
+  const hash = await passHash(email, pass);
+  if(hash === null){ err.textContent = t().errCrypto; return; }
   const found = findAccount(email);
   const user = found && found.hash === hash ? found : null;
   if(!user){
-    errEl.textContent = t().errLogin;
+    err.textContent = t().errLogin;
     $("#loginPass").value = "";
     $("#loginPass").focus();
     return;
   }
+  $("#loginPass").value = "";
+  store(KA.last, user.email);
   store(K.session, { email:user.email, org:user.org, at:new Date().toISOString() });
   startSession(user.email, user.org);
 }
 
-function showSignup(on){
-  $("#loginPanel").classList.toggle("hidden", on);
-  $("#signupPanel").classList.toggle("hidden", !on);
-  $((on ? "#suFirm" : "#loginEmail")).focus();
-}
-
-async function doSignup(){
+async function doSetup(){
   const firm  = $("#suFirm").value.trim();
   const email = $("#suEmail").value.trim().toLowerCase();
   const pass  = $("#suPass").value;
   const pass2 = $("#suPass2").value;
-  const code  = $("#suCode").value.trim();
-  const err   = $("#signupErr");
+  const pin   = $("#suPin").value.trim();
+  const err   = $("#setupErr");
   err.textContent = "";
-  if(!firm || !email || !pass || !code){ err.textContent = t().errFields; return; }
+  if(!firm || !email || !pass || !pin){ err.textContent = t().errFields; return; }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent = t().errEmail; return; }
-  if(code.toUpperCase() !== SIGNUP_CODE.toUpperCase()){ err.textContent = t().errCode; return; }
   if(pass.length < 6){ err.textContent = t().errShortPass; return; }
   if(pass !== pass2){ err.textContent = t().errMatch; return; }
+  if(!/^\d{4,6}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
   if(findAccount(email)){ err.textContent = t().errTaken; return; }
-  const hash = await sha256(email + ":" + pass);
+  const hash = await passHash(email, pass);
+  const ph   = await pinHash(email, pin);
   if(hash === null){ err.textContent = t().errCrypto; return; }
 
   const org = "f_" + uid();
@@ -727,13 +820,46 @@ async function doSignup(){
   orgs[org] = { he: firm, en: firm, webhook: DEFAULT_WEBHOOK, clients: [] };
   store(KA.orgs, orgs);
   const accs = accountsList();
-  accs.push({ email, hash, org });
+  accs.push({ email, hash, pinHash: ph, org, firm });
   store(KA.accounts, accs);
+  store(KA.last, email);
   store(K.session, { email, org, at:new Date().toISOString() });
+  ["#suFirm","#suEmail","#suPass","#suPass2","#suPin"].forEach(sel => $(sel).value = "");
   startSession(email, org);
   sendEvent({ action:"signup", user:email, org, orgName:firm });
   toast(t().welcome);
   setView("settings");
+}
+
+async function updateSecurity(){
+  const cur = $("#curPass").value;
+  const np  = $("#newPass").value;
+  const np2 = $("#newPass2").value;
+  const pin = $("#newPin").value.trim();
+  const err = $("#secErr");
+  err.textContent = "";
+  if(!np && !pin){ err.textContent = t().errNothing; return; }
+  if(!cur){ err.textContent = t().errCurPass; return; }
+  const acc = findAccount(state.user);
+  const curHash = await passHash(state.user, cur);
+  if(curHash === null){ err.textContent = t().errCrypto; return; }
+  if(!acc || acc.hash !== curHash){ err.textContent = t().errCurWrong; return; }
+  const builtIn = USERS.some(u => u.email === acc.email);
+  if(builtIn){ err.textContent = t().errBuiltIn; return; }
+  if(np){
+    if(np.length < 6){ err.textContent = t().errShortPass; return; }
+    if(np !== np2){ err.textContent = t().errMatch; return; }
+  }
+  if(pin && !/^\d{4,6}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
+
+  const accs = accountsList();
+  const i = accs.findIndex(a => a.email === acc.email);
+  if(i < 0){ err.textContent = t().errBuiltIn; return; }
+  if(np) accs[i].hash = await passHash(acc.email, np);
+  if(pin) accs[i].pinHash = await pinHash(acc.email, pin);
+  store(KA.accounts, accs);
+  ["#curPass","#newPass","#newPass2","#newPin"].forEach(sel => $(sel).value = "");
+  toast(t().securityUpdated);
 }
 
 function startSession(email, org){
@@ -741,17 +867,36 @@ function startSession(email, org){
   state.org = org;
   const cfg = orgCfg();
   state.records = migrateRecords(load(K.rec(org), []));
-  state.clients = load(K.cli(org), null) || cfg.clients.slice();
-  state.categories = load(K.cat(org), null) || cfg.categories.map(c => Object.assign({}, c));
+  state.clients = load(K.cli(org), null) || (cfg.clients || []).slice();
+  state.categories = load(K.cat(org), null) || (cfg.categories || DEFAULT_CATEGORIES).map(c => Object.assign({}, c));
   state.outbox = load(K.out(org), []);
+  const prefs = load(K.prefs(email), null);
+  if(prefs){
+    if(prefs.dashMode) state.dashMode = prefs.dashMode;
+    if(prefs.period) state.period = prefs.period;
+  }
   saveOrgData();
+  store(KA.last, email);
   $("#loginView").classList.add("hidden");
   $("#appView").classList.remove("hidden");
   document.body.classList.add("authed");
-  $("#loginPass").value = "";
+  $("#securityCard").classList.toggle("hidden", USERS.some(u => u.email === email));
   applyLang();
+  applyDashPrefs();
   setView("entry");
   flushOutbox();
+}
+
+function savePrefs(){
+  if(state.user) store(K.prefs(state.user), { dashMode: state.dashMode, period: state.period });
+}
+function applyDashPrefs(){
+  const byClient = state.dashMode === "client";
+  $("#modeClient").setAttribute("aria-pressed", byClient);
+  $("#modeDate").setAttribute("aria-pressed", !byClient);
+  $("#periodSeg").classList.toggle("hidden", byClient);
+  $("#periodMonth").setAttribute("aria-pressed", state.period === "month");
+  $("#periodQuarter").setAttribute("aria-pressed", state.period === "quarter");
 }
 
 function logout(){
@@ -761,7 +906,7 @@ function logout(){
   document.body.classList.remove("authed");
   $("#appView").classList.add("hidden");
   $("#loginView").classList.remove("hidden");
-  $("#loginEmail").focus();
+  openLoginScreen();
 }
 
 function saveOrgData(){
@@ -1401,7 +1546,11 @@ function applyLang(){
   });
   $("#langHe").setAttribute("aria-pressed", state.lang === "he");
   $("#langEn").setAttribute("aria-pressed", state.lang === "en");
-  $("#loginEmail").placeholder = "";
+  const pinEmail = $("#pinPanel").dataset.email;
+  if(pinEmail){
+    const acc = findAccount(pinEmail);
+    if(acc) $("#pinWho").innerHTML = `${esc(orgNameOf(acc.org))}<span>${esc(acc.email)}</span>`;
+  }
 
   if(state.user){
     $("#orgName").textContent = orgCfg()[state.lang] || orgCfg().he;
@@ -1476,12 +1625,17 @@ let entryForm = null;
 let editForm = null;
 
 $("#loginBtn").addEventListener("click", doLogin);
-$("#toSignup").addEventListener("click", () => showSignup(true));
-$("#toLogin").addEventListener("click", () => showSignup(false));
-$("#signupBtn").addEventListener("click", doSignup);
-$("#suCode").addEventListener("keydown", e => { if(e.key === "Enter") doSignup(); });
 $("#loginEmail").addEventListener("keydown", e => { if(e.key === "Enter") $("#loginPass").focus(); });
 $("#loginPass").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); });
+$("#pinBtn").addEventListener("click", doPin);
+$("#pinInput").addEventListener("keydown", e => { if(e.key === "Enter") doPin(); });
+$("#setupBtn").addEventListener("click", doSetup);
+$("#suPin").addEventListener("keydown", e => { if(e.key === "Enter") doSetup(); });
+$("#toPassword").addEventListener("click", () => showPanel("loginPanel"));
+$("#toSetup").addEventListener("click", () => showPanel("setupPanel"));
+$("#toSetupFromPin").addEventListener("click", () => showPanel("setupPanel"));
+$("#toLogin").addEventListener("click", () => openLoginScreen());
+$("#secBtn").addEventListener("click", updateSecurity);
 
 $("#saveBtn").addEventListener("click", saveEntry);
 $("#updateBtn").addEventListener("click", updateEntry);
@@ -1499,29 +1653,19 @@ $("#langEn").addEventListener("click", () => { if(state.lang !== "en"){ state.la
 
 $("#modeClient").addEventListener("click", () => {
   state.dashMode = "client"; state.openGroups = {};
-  $("#modeClient").setAttribute("aria-pressed","true");
-  $("#modeDate").setAttribute("aria-pressed","false");
-  $("#periodSeg").classList.add("hidden");
-  renderDash();
+  applyDashPrefs(); savePrefs(); renderDash();
 });
 $("#modeDate").addEventListener("click", () => {
   state.dashMode = "date"; state.openGroups = {};
-  $("#modeClient").setAttribute("aria-pressed","false");
-  $("#modeDate").setAttribute("aria-pressed","true");
-  $("#periodSeg").classList.remove("hidden");
-  renderDash();
+  applyDashPrefs(); savePrefs(); renderDash();
 });
 $("#periodMonth").addEventListener("click", () => {
   state.period = "month"; state.openGroups = {};
-  $("#periodMonth").setAttribute("aria-pressed","true");
-  $("#periodQuarter").setAttribute("aria-pressed","false");
-  renderDash();
+  applyDashPrefs(); savePrefs(); renderDash();
 });
 $("#periodQuarter").addEventListener("click", () => {
   state.period = "quarter"; state.openGroups = {};
-  $("#periodMonth").setAttribute("aria-pressed","false");
-  $("#periodQuarter").setAttribute("aria-pressed","true");
-  renderDash();
+  applyDashPrefs(); savePrefs(); renderDash();
 });
 
 $("#dashSearch").addEventListener("input", e => { state.search = e.target.value; renderDash(); });
@@ -1552,7 +1696,7 @@ $("#favicon").href = LOGO_SRC;
 applyLang();
 const session = load(K.session, null);
 if(session && findAccount(session.email)) startSession(session.email, session.org);
-else $("#loginEmail").focus();
+else openLoginScreen();
 </script>
 </body>
 </html>
