@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-title" content="HourLedger-Law">
 <link rel="icon" id="favicon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
@@ -73,6 +74,10 @@ button{cursor:pointer}
 .sec-form{display:flex;flex-direction:column;gap:10px;margin-top:6px}
 .login-brand .tag{font-size:13.5px;font-weight:600;color:var(--ink-soft)}
 .login-note{margin-top:16px;font-size:12.5px;color:var(--ink-faint);text-align:center;font-weight:600}
+.notice{background:var(--gold-soft);border:1px solid var(--gold);border-radius:var(--r-md);padding:12px 14px;margin-bottom:16px;font-size:14px;font-weight:600;line-height:1.5}
+.notice b{direction:ltr;unicode-bidi:embed}
+.login-title{font-size:17px;font-weight:800;margin:0 0 4px}
+.login-sub{font-size:13px;color:var(--ink-soft);font-weight:600;margin:0 0 16px}
 
 /* ===== Header ===== */
 header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.90);backdrop-filter:saturate(1.6) blur(12px);border-bottom:1px solid var(--line)}
@@ -281,6 +286,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <button type="button" class="btn btn-primary btn-block" id="pinBtn" data-i18n="enter">כניסה</button>
       <button type="button" class="link-btn" id="toPassword" data-i18n="usePassword">כניסה עם סיסמה</button>
       <button type="button" class="link-btn" id="toSetupFromPin" data-i18n="toSetup">פתיחת חשבון חדש</button>
+      <button type="button" class="link-btn hidden" id="signOutFromPin" data-i18n="signOutDevice">התנתקות מהמכשיר</button>
     </div>
 
     <!-- email + password -->
@@ -295,7 +301,56 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
         <span class="err" id="loginErr"></span>
       </div>
       <button type="button" class="btn btn-primary btn-block" id="loginBtn" data-i18n="login">כניסה</button>
+      <button type="button" class="link-btn hidden" id="toForgot" data-i18n="forgot">שכחתי סיסמה</button>
       <button type="button" class="link-btn" id="toSetup" data-i18n="toSetup">פתיחת חשבון חדש</button>
+    </div>
+
+    <!-- forgot password (cloud accounts) -->
+    <div id="forgotPanel" class="hidden">
+      <h2 class="login-title" data-i18n="forgotTitle">איפוס סיסמה</h2>
+      <p class="login-sub" data-i18n="forgotSub">נשלח למייל קישור לקביעת סיסמה חדשה</p>
+      <div class="field">
+        <label for="forgotEmail" data-i18n="fEmail">אימייל</label>
+        <input type="email" id="forgotEmail" class="control" autocomplete="username" inputmode="email" dir="ltr">
+        <span class="err" id="forgotErr"></span>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" id="forgotBtn" data-i18n="sendReset">שליחת קישור לאיפוס</button>
+      <button type="button" class="link-btn" id="forgotBack" data-i18n="backToLogin">חזרה לכניסה</button>
+    </div>
+
+    <!-- new password after clicking the reset link -->
+    <div id="resetPanel" class="hidden">
+      <h2 class="login-title" data-i18n="resetTitle">קביעת סיסמה חדשה</h2>
+      <p class="login-sub" data-i18n="resetSub">הסיסמה החדשה תחול על כל המכשירים</p>
+      <div class="field">
+        <label for="resetPass" data-i18n="fPassNew">סיסמה</label>
+        <input type="password" id="resetPass" class="control" autocomplete="new-password" dir="ltr">
+      </div>
+      <div class="field">
+        <label for="resetPass2" data-i18n="fPass2">אימות סיסמה</label>
+        <input type="password" id="resetPass2" class="control" autocomplete="new-password" dir="ltr">
+        <span class="err" id="resetErr"></span>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" id="resetBtn" data-i18n="saveReset">שמירת הסיסמה</button>
+    </div>
+
+    <!-- email confirmation sent -->
+    <div id="confirmPanel" class="hidden">
+      <h2 class="login-title" data-i18n="confirmTitle">כמעט סיימנו</h2>
+      <div class="notice"><span data-i18n="confirmMsg">שלחנו מייל אימות אל</span> <b id="confirmEmail"></b><br><span data-i18n="confirmMsg2">אחרי הלחיצה על הקישור במייל אפשר להיכנס.</span></div>
+      <button type="button" class="btn btn-primary btn-block" id="confirmBack" data-i18n="backToLogin">חזרה לכניסה</button>
+    </div>
+
+    <!-- optional quick access code on a new device -->
+    <div id="pinSetupPanel" class="hidden">
+      <h2 class="login-title" data-i18n="pinSetupTitle">קוד כניסה מהיר למכשיר הזה</h2>
+      <p class="login-sub" data-i18n="pinSetupSub">4 עד 6 ספרות. בפעם הבאה נכנסים עם הקוד במקום הסיסמה</p>
+      <div class="field">
+        <input type="password" id="pinSetupInput" class="control pin" inputmode="numeric" maxlength="6" autocomplete="off" dir="ltr">
+        <span class="err" id="pinSetupErr"></span>
+      </div>
+      <button type="button" class="btn btn-primary btn-block" id="pinSetupBtn" data-i18n="pinSetupSave">שמירה</button>
+      <button type="button" class="link-btn" id="pinSetupSkip" data-i18n="pinSetupSkip">דילוג בינתיים</button>
     </div>
 
     <!-- first run on this device -->
@@ -430,10 +485,13 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <h1 class="card-title" data-i18n="accountTitle">חשבון וסנכרון</h1>
       <div class="kv"><span class="k" data-i18n="kUser">משתמש</span><span class="v" id="kvUser"></span></div>
       <div class="kv"><span class="k" data-i18n="kOrg">משרד</span><span class="v" id="kvOrg"></span></div>
+      <div class="kv"><span class="k" data-i18n="kCloud">חשבון ענן</span><span class="v" id="kvCloud"></span></div>
       <div class="kv"><span class="k" data-i18n="kSync">סנכרון לגוגל שיטס</span><span class="v" id="kvSync"></span></div>
       <div class="kv"><span class="k" data-i18n="kPending">ממתין לשליחה</span><span class="v" id="kvPending">0</span></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="retryBtn" data-i18n="retrySync">שליחה חוזרת</button>
+        <button type="button" class="btn btn-ghost hidden" id="importLocalBtn" data-i18n="importLocal">ייבוא דיווחים מהמכשיר</button>
+        <button type="button" class="btn btn-ghost hidden" id="lockBtn" data-i18n="lock">נעילה</button>
         <button type="button" class="btn btn-danger" id="logoutBtn" data-i18n="logout">התנתקות</button>
       </div>
     </div>
@@ -500,7 +558,19 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
    update / delete). Failed sends are queued and retried.
    ============================================================ */
 
-const APP_VERSION = "3.0";
+const APP_VERSION = "4.0";
+
+/* ---------- Supabase (cloud accounts + data) ----------
+   Fill in after creating the project: Project Settings → API.
+   Both values are public client keys — safe to commit. Leave empty to run device-only. */
+const SUPABASE_URL = "";
+const SUPABASE_KEY = "";
+const SITE_URL = location.origin + location.pathname;
+const RECOVERY_LINK = /type=recovery/.test(location.hash);
+const sb = (SUPABASE_URL && SUPABASE_KEY && window.supabase)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } })
+  : null;
+const cloudMode = () => !!sb;
 const DEFAULT_WEBHOOK = "https://hook.eu1.make.com/3f461zbp81thyc76u95jzfs3yn6i5p1r";
 const LOGO_SRC = "data:image/png;base64,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";
 
@@ -552,6 +622,20 @@ const I18N = {
     errLogin:"אימייל או סיסמה שגויים", errFields:"יש למלא את כל השדות",
     toLogin:"כבר יש חשבון? כניסה", toSetup:"פתיחת חשבון חדש", usePassword:"כניסה עם סיסמה",
     showPass:"הצגת הסיסמה", hidePass:"הסתרת הסיסמה",
+    forgot:"שכחתי סיסמה", forgotTitle:"איפוס סיסמה", forgotSub:"נשלח למייל קישור לקביעת סיסמה חדשה",
+    sendReset:"שליחת קישור לאיפוס", backToLogin:"חזרה לכניסה",
+    sentReset:"אם קיים חשבון עם המייל הזה, נשלח אליו קישור לאיפוס",
+    resetTitle:"קביעת סיסמה חדשה", resetSub:"הסיסמה החדשה תחול על כל המכשירים", saveReset:"שמירת הסיסמה", resetDone:"הסיסמה עודכנה",
+    confirmTitle:"כמעט סיימנו", confirmMsg:"שלחנו מייל אימות אל", confirmMsg2:"אחרי הלחיצה על הקישור במייל אפשר להיכנס.",
+    pinSetupTitle:"קוד כניסה מהיר למכשיר הזה", pinSetupSub:"4 עד 6 ספרות. בפעם הבאה נכנסים עם הקוד במקום הסיסמה",
+    pinSetupSave:"שמירה", pinSetupSkip:"דילוג בינתיים",
+    errNotConfirmed:"האימייל עדיין לא אומת — יש ללחוץ על הקישור במייל", errCloud:"שגיאת תקשורת — נסו שוב",
+    errNoCloudSession:"יש להיכנס עם סיסמה", errRate:"יותר מדי ניסיונות — נסו שוב בעוד כמה דקות",
+    lock:"נעילה", signOutDevice:"התנתקות מהמכשיר", kCloud:"חשבון ענן", cloudOn:"מחובר", cloudOff:"במכשיר בלבד",
+    setupNoteCloud:"החשבון נשמר בענן — אפשר להיכנס מכל מכשיר. אחרי הפתיחה מזינים את רשימת הלקוחות",
+    securitySubCloud:"סיסמה — לכל המכשירים. קוד כניסה — למכשיר הזה בלבד",
+    importLocal:"ייבוא דיווחים מהמכשיר", importPrompt:"נמצאו {n} דיווחים שנשמרו במכשיר הזה לפני המעבר לענן. להעלות אותם לחשבון?",
+    importDone:"הועלו לענן — דיווחים:", cloudPulled:"סונכרן מהענן",
     fFirm:"שם המשרד", fPassNew:"סיסמה", fPass2:"אימות סיסמה",
     fPin:"קוד כניסה", fPinNew:"קוד כניסה מהיר", fPinHint:"4 ספרות, לכניסות הבאות במכשיר הזה",
     enter:"כניסה", createAccount:"פתיחת חשבון",
@@ -618,6 +702,20 @@ const I18N = {
     errLogin:"Wrong email or password", errFields:"Fill in every field",
     toLogin:"Already have an account? Sign in", toSetup:"Create a new account", usePassword:"Sign in with password",
     showPass:"Show password", hidePass:"Hide password",
+    forgot:"Forgot password", forgotTitle:"Reset password", forgotSub:"We'll email you a link to set a new password",
+    sendReset:"Send reset link", backToLogin:"Back to sign in",
+    sentReset:"If an account exists for this email, a reset link is on its way",
+    resetTitle:"Set a new password", resetSub:"The new password applies on every device", saveReset:"Save password", resetDone:"Password updated",
+    confirmTitle:"Almost done", confirmMsg:"We sent a confirmation email to", confirmMsg2:"After clicking the link in the email you can sign in.",
+    pinSetupTitle:"Quick access code for this device", pinSetupSub:"4 to 6 digits. Next time, sign in with the code instead of the password",
+    pinSetupSave:"Save", pinSetupSkip:"Skip for now",
+    errNotConfirmed:"Email not confirmed yet — click the link in the email", errCloud:"Connection error — try again",
+    errNoCloudSession:"Please sign in with your password", errRate:"Too many attempts — try again in a few minutes",
+    lock:"Lock", signOutDevice:"Sign out of this device", kCloud:"Cloud account", cloudOn:"Connected", cloudOff:"Device only",
+    setupNoteCloud:"Your account lives in the cloud — sign in from any device. Add your clients after setup",
+    securitySubCloud:"Password — every device. Access code — this device only",
+    importLocal:"Import entries from this device", importPrompt:"Found {n} entries saved on this device before moving to the cloud. Upload them to your account?",
+    importDone:"Uploaded to the cloud — entries:", cloudPulled:"Synced from the cloud",
     fFirm:"Office name", fPassNew:"Password", fPass2:"Confirm password",
     fPin:"Access code", fPinNew:"Quick access code", fPinHint:"4 digits, for next logins on this device",
     enter:"Enter", createAccount:"Create account",
@@ -688,6 +786,8 @@ const K = {
   cli: o => "moneh.clients.v2." + o,
   cat: o => "moneh.cats.v2." + o,
   out: o => "moneh.outbox.v2." + o,
+  cloudOut: o => "hourledger.cloudout.v1." + o,
+  migrated: o => "hourledger.migrated.v1." + o,
   prefs: e => "hourledger.prefs.v1." + e
 };
 function load(key, fallback){
@@ -707,6 +807,9 @@ const state = {
   clients: [],
   categories: [],
   outbox: [],
+  cloudOut: [],
+  cloud: false,
+  orgInfo: null,
   view: "entry",
   dashMode: "client",
   period: "month",
@@ -720,6 +823,7 @@ const t = () => I18N[state.lang];
 const accountsList = () => load(KA.accounts, []);
 const dynOrgs = () => load(KA.orgs, {});
 function orgCfg(){
+  if(state.cloud && state.orgInfo) return { he: state.orgInfo.name, en: state.orgInfo.name, webhook: state.orgInfo.webhook || DEFAULT_WEBHOOK, clients: [], categories: DEFAULT_CATEGORIES };
   if(ORGS[state.org]) return ORGS[state.org];
   const d = dynOrgs()[state.org];
   if(d) return Object.assign({ categories: DEFAULT_CATEGORIES }, d);
@@ -728,6 +832,18 @@ function orgCfg(){
 function findAccount(email){
   const e = String(email||"").toLowerCase();
   return USERS.find(u => u.email.toLowerCase() === e) || accountsList().find(u => u.email.toLowerCase() === e) || null;
+}
+const isDemo = email => USERS.some(u => u.email === String(email||"").toLowerCase());
+/* local record of a cloud account on this device: org + firm cache and the optional PIN */
+function upsertLocalAccount(patch){
+  const accs = accountsList();
+  const email = patch.email.toLowerCase();
+  const i = accs.findIndex(a => a.email === email);
+  if(i < 0) accs.push(Object.assign({ email }, patch)); else accs[i] = Object.assign({}, accs[i], patch, { email });
+  store(KA.accounts, accs);
+}
+function removeLocalAccount(email){
+  store(KA.accounts, accountsList().filter(a => a.email !== String(email||"").toLowerCase()));
 }
 
 /* ---------- Helpers ---------- */
@@ -776,10 +892,10 @@ const passHash = (email, pass) => sha256(String(email).toLowerCase() + ":" + pas
 const pinHash  = (email, pin)  => sha256(String(email).toLowerCase() + ":pin:" + pin);
 
 function showPanel(which){
-  ["pinPanel","loginPanel","setupPanel"].forEach(id => {
+  ["pinPanel","loginPanel","setupPanel","forgotPanel","resetPanel","confirmPanel","pinSetupPanel"].forEach(id => {
     $("#" + id).classList.toggle("hidden", id !== which);
   });
-  const first = { pinPanel:"#pinInput", loginPanel:"#loginEmail", setupPanel:"#suFirm" }[which];
+  const first = { pinPanel:"#pinInput", loginPanel:"#loginEmail", setupPanel:"#suFirm", forgotPanel:"#forgotEmail", resetPanel:"#resetPass", pinSetupPanel:"#pinSetupInput" }[which];
   const el = $(first);
   if(el) setTimeout(() => el.focus(), 30);
 }
@@ -787,8 +903,11 @@ function openLoginScreen(){
   const accs = accountsList();
   const last = load(KA.last, null);
   const acc = accs.find(a => a.email === last) || accs[0];
-  if(acc && acc.pinHash){
-    $("#pinWho").innerHTML = `${esc(orgNameOf(acc.org))}<span>${esc(acc.email)}</span>`;
+  // a cloud account can unlock with the PIN only while its cloud session is still alive on this device
+  const pinUsable = acc && acc.pinHash && (!acc.cloud || (cloudUser && cloudUser.email.toLowerCase() === acc.email));
+  $("#signOutFromPin").classList.toggle("hidden", !(acc && acc.cloud));
+  if(pinUsable){
+    $("#pinWho").innerHTML = `${esc(orgNameOf(acc.org) || acc.firm || "")}<span>${esc(acc.email)}</span>`;
     $("#pinPanel").dataset.email = acc.email;
     showPanel("pinPanel");
   }else if(accs.length){
@@ -819,6 +938,12 @@ async function doPin(){
     return;
   }
   $("#pinInput").value = "";
+  if(acc.cloud){
+    if(!cloudUser){ err.textContent = t().errNoCloudSession; showPanel("loginPanel"); return; }
+    store(K.session, { email:acc.email, org:acc.org, at:new Date().toISOString() });
+    await enterCloud(cloudUser);
+    return;
+  }
   store(K.session, { email:acc.email, org:acc.org, at:new Date().toISOString() });
   startSession(acc.email, acc.org);
 }
@@ -829,6 +954,25 @@ async function doLogin(){
   const err   = $("#loginErr");
   err.textContent = "";
   if(!email || !pass){ err.textContent = t().errFields; return; }
+  if(cloudMode() && !isDemo(email)){
+    $("#loginBtn").disabled = true;
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+    $("#loginBtn").disabled = false;
+    if(error){
+      err.textContent = cloudErr(error, t().errLogin);
+      $("#loginPass").value = ""; $("#loginPass").focus();
+      return;
+    }
+    $("#loginPass").value = "";
+    cloudUser = data.user;
+    store(KA.last, email);
+    store(K.session, { email, at:new Date().toISOString() });
+    const acc = findAccount(email);
+    if(acc && acc.pinHash){ await enterCloud(data.user); return; }
+    pendingPinUser = data.user;
+    showPanel("pinSetupPanel");
+    return;
+  }
   const hash = await passHash(email, pass);
   if(hash === null){ err.textContent = t().errCrypto; return; }
   const found = findAccount(email);
@@ -858,6 +1002,32 @@ async function doSetup(){
   if(pass.length < 6){ err.textContent = t().errShortPass; return; }
   if(pass !== pass2){ err.textContent = t().errMatch; return; }
   if(!/^\d{4,6}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
+  if(cloudMode()){
+    if(isDemo(email)){ err.textContent = t().errTaken; return; }
+    const ph = await pinHash(email, pin);
+    if(ph === null){ err.textContent = t().errCrypto; return; }
+    $("#setupBtn").disabled = true;
+    const { data, error } = await sb.auth.signUp({ email, password: pass, options:{ data:{ firm, webhook: DEFAULT_WEBHOOK }, emailRedirectTo: SITE_URL } });
+    $("#setupBtn").disabled = false;
+    if(error){ err.textContent = cloudErr(error, t().errCloud); return; }
+    // Supabase returns a user with no identities when the email is already registered
+    if(data.user && Array.isArray(data.user.identities) && !data.user.identities.length){ err.textContent = t().errTaken; return; }
+    upsertLocalAccount({ email, cloud:true, pinHash: ph, firm });
+    store(KA.last, email);
+    ["#suFirm","#suEmail","#suPass","#suPass2","#suPin"].forEach(sel => $(sel).value = "");
+    sendEvent({ action:"signup", user:email, org:"cloud", orgName:firm });
+    if(data.session){
+      cloudUser = data.user;
+      store(K.session, { email, at:new Date().toISOString() });
+      await enterCloud(data.user);
+      toast(t().welcome);
+      setView("settings");
+    }else{
+      $("#confirmEmail").textContent = email;
+      showPanel("confirmPanel");
+    }
+    return;
+  }
   if(findAccount(email)){ err.textContent = t().errTaken; return; }
   const hash = await passHash(email, pass);
   const ph   = await pinHash(email, pin);
@@ -888,6 +1058,25 @@ async function updateSecurity(){
   err.textContent = "";
   if(!np && !pin){ err.textContent = t().errNothing; return; }
   if(!cur){ err.textContent = t().errCurPass; return; }
+  if(np){
+    if(np.length < 6){ err.textContent = t().errShortPass; return; }
+    if(np !== np2){ err.textContent = t().errMatch; return; }
+  }
+  if(pin && !/^\d{4,6}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
+  if(state.cloud){
+    $("#secBtn").disabled = true;
+    const chk = await sb.auth.signInWithPassword({ email: state.user, password: cur });
+    if(chk.error){ $("#secBtn").disabled = false; err.textContent = t().errCurWrong; return; }
+    if(np){
+      const up = await sb.auth.updateUser({ password: np });
+      if(up.error){ $("#secBtn").disabled = false; err.textContent = cloudErr(up.error, t().errCloud); return; }
+    }
+    if(pin) upsertLocalAccount({ email: state.user, pinHash: await pinHash(state.user, pin) });
+    $("#secBtn").disabled = false;
+    ["#curPass","#newPass","#newPass2","#newPin"].forEach(sel => $(sel).value = "");
+    toast(t().securityUpdated);
+    return;
+  }
   const acc = findAccount(state.user);
   const curHash = await passHash(state.user, cur);
   if(curHash === null){ err.textContent = t().errCrypto; return; }
@@ -918,6 +1107,7 @@ function startSession(email, org){
   state.clients = load(K.cli(org), null) || (cfg.clients || []).slice();
   state.categories = load(K.cat(org), null) || (cfg.categories || DEFAULT_CATEGORIES).map(c => Object.assign({}, c));
   state.outbox = load(K.out(org), []);
+  state.cloudOut = load(K.cloudOut(org), []);
   const prefs = load(K.prefs(email), null);
   if(prefs){
     if(prefs.dashMode) state.dashMode = prefs.dashMode;
@@ -929,10 +1119,12 @@ function startSession(email, org){
   $("#appView").classList.remove("hidden");
   document.body.classList.add("authed");
   $("#securityCard").classList.toggle("hidden", USERS.some(u => u.email === email));
+  $("#lockBtn").classList.toggle("hidden", !state.cloud);
   applyLang();
   applyDashPrefs();
   setView("entry");
   flushOutbox();
+  flushCloud();
 }
 
 function savePrefs(){
@@ -978,13 +1170,25 @@ function filteredRecords(){
   return state.records.filter(r => inRange(r) && (!q || norm(r.client).includes(q)));
 }
 
-function logout(){
+function clearSessionUI(){
   try{ localStorage.removeItem(K.session); }catch(e){}
-  state.user = null; state.org = null;
-  state.records = []; state.clients = []; state.categories = []; state.outbox = [];
+  state.user = null; state.org = null; state.cloud = false; state.orgInfo = null;
+  state.records = []; state.clients = []; state.categories = []; state.outbox = []; state.cloudOut = [];
   document.body.classList.remove("authed");
   $("#appView").classList.add("hidden");
   $("#loginView").classList.remove("hidden");
+}
+/* local account: sign out. cloud account: keep the cloud session, ask for the PIN next time */
+function logout(){
+  clearSessionUI();
+  openLoginScreen();
+}
+async function signOutDevice(){
+  const email = state.user || (cloudUser && cloudUser.email) || $("#pinPanel").dataset.email;
+  if(sb){ try{ await sb.auth.signOut(); }catch(e){} }
+  cloudUser = null;
+  if(email) removeLocalAccount(email);
+  clearSessionUI();
   openLoginScreen();
 }
 
@@ -994,6 +1198,149 @@ function saveOrgData(){
   store(K.cli(state.org), state.clients);
   store(K.cat(state.org), state.categories);
   store(K.out(state.org), state.outbox);
+  store(K.cloudOut(state.org), state.cloudOut);
+}
+
+/* ============================================================
+   Cloud — Supabase session, pull on login, queued writes
+   ============================================================ */
+let cloudUser = null;        // the signed-in Supabase user on this device (null when signed out)
+let pendingPinUser = null;   // user waiting on the optional PIN-setup step
+function cloudErr(error, fallback){
+  const m = String(error && error.message || "").toLowerCase();
+  if(m.includes("invalid login")) return t().errLogin;
+  if(m.includes("not confirmed")) return t().errNotConfirmed;
+  if(m.includes("already registered") || m.includes("already exists")) return t().errTaken;
+  if(m.includes("rate limit") || m.includes("too many")) return t().errRate;
+  if(m.includes("failed to fetch") || m.includes("network")) return t().errCloud;
+  return fallback + (error && error.message ? " (" + error.message + ")" : "");
+}
+/* signed-in cloud user → load the org, open the app from cache, then refresh from the cloud */
+async function enterCloud(user){
+  const email = user.email.toLowerCase();
+  let info = null;
+  try{
+    const { data } = await sb.from("profiles").select("org_id, orgs(id,name,webhook)").eq("user_id", user.id).maybeSingle();
+    if(data && data.orgs) info = { id: data.orgs.id, name: data.orgs.name, webhook: data.orgs.webhook };
+  }catch(e){ /* offline — fall back to the cached org below */ }
+  if(!info){
+    const acc = findAccount(email);
+    if(acc && acc.cloud && acc.org) info = { id: acc.org, name: acc.firm || "", webhook: acc.webhook || "" };
+  }
+  if(!info){ showPanel("loginPanel"); $("#loginErr").textContent = t().errCloud; return; }
+  cloudUser = user;
+  state.cloud = true;
+  state.orgInfo = info;
+  upsertLocalAccount({ email, cloud:true, org: info.id, firm: info.name, webhook: info.webhook || "" });
+  store(K.session, { email, org: info.id, at:new Date().toISOString() });
+  startSession(email, info.id);
+  const fresh = await pullCloud();
+  if(fresh) offerLocalImport();
+}
+const recToRow = r => ({
+  org_id: state.orgInfo.id, id: r.id, group_id: r.groupId || r.id, date: r.date, client: r.client,
+  category: r.category, hours: r.hours, notes: r.notes || "", user_email: state.user || "",
+  created_at: r.createdAt || new Date().toISOString(), updated_at: r.updatedAt || r.createdAt || new Date().toISOString()
+});
+const rowToRec = x => ({
+  id: x.id, groupId: x.group_id || x.id, date: x.date, client: x.client, category: x.category,
+  hours: Number(x.hours), notes: x.notes || "", createdAt: x.created_at, updatedAt: x.updated_at
+});
+/* replace the local cache with the cloud copy — skipped while offline edits are still waiting */
+async function pullCloud(){
+  if(!sb || !state.cloud) return false;
+  await flushCloud();
+  if(state.cloudOut.length) return false;
+  const org = state.orgInfo.id;
+  try{
+    const [c, k, r] = await Promise.all([
+      sb.from("clients").select("name").eq("org_id", org).order("name"),
+      sb.from("categories").select("id,he,en,sort").eq("org_id", org).order("sort"),
+      sb.from("records").select("*").eq("org_id", org)
+    ]);
+    if(c.error || k.error || r.error) throw (c.error || k.error || r.error);
+    state.clients = c.data.map(x => x.name);
+    if(k.data.length){
+      state.categories = k.data.map(x => ({ id:x.id, he:x.he, en:x.en }));
+    }else{
+      // brand-new org: seed the default activity list
+      state.categories = DEFAULT_CATEGORIES.map(x => Object.assign({}, x));
+      await sb.from("categories").upsert(state.categories.map((x,i) => ({ org_id:org, id:x.id, he:x.he, en:x.en, sort:i })));
+    }
+    state.records = r.data.map(rowToRec);
+    saveOrgData();
+    renderAll();
+    rebuildForms();
+    return true;
+  }catch(e){
+    console.warn("cloud pull failed", e);
+    return false;
+  }
+}
+function cloudQueue(op){
+  if(!state.cloud) return;
+  state.cloudOut.push(op);
+  store(K.cloudOut(state.org), state.cloudOut);
+  updateSyncUI();
+  flushCloud();
+}
+const cloudRec    = (rec, op) => state.cloud && cloudQueue(op === "delete" ? { t:"records", op:"delete", match:{ org_id: state.orgInfo.id, id: rec.id } } : { t:"records", op:"upsert", row: recToRow(rec) });
+const cloudClient = (name, op) => state.cloud && cloudQueue(op === "delete" ? { t:"clients", op:"delete", match:{ org_id: state.orgInfo.id, name } } : { t:"clients", op:"upsert", row:{ org_id: state.orgInfo.id, name } });
+const cloudCat    = (cat, op)  => state.cloud && cloudQueue(op === "delete" ? { t:"categories", op:"delete", match:{ org_id: state.orgInfo.id, id: cat.id } } : { t:"categories", op:"upsert", row:{ org_id: state.orgInfo.id, id: cat.id, he: cat.he, en: cat.en, sort: state.categories.findIndex(c => c.id === cat.id) } });
+let cloudFlushing = false;
+async function flushCloud(){
+  if(!sb || !state.cloud || cloudFlushing || !state.cloudOut.length) return;
+  cloudFlushing = true;
+  while(state.cloudOut.length){
+    const op = state.cloudOut[0];
+    let error = null;
+    try{
+      const q = op.op === "delete" ? sb.from(op.t).delete().match(op.match) : sb.from(op.t).upsert(op.row);
+      error = (await q).error;
+    }catch(e){ error = e; }
+    if(error){
+      const offline = !navigator.onLine || /fetch|network/i.test(String(error.message || ""));
+      op.tries = (op.tries || 0) + 1;
+      if(offline || op.tries < 3){ store(K.cloudOut(state.org), state.cloudOut); break; }
+      console.warn("cloud write dropped", op, error);   // permanent failure — don't block the queue
+    }
+    state.cloudOut.shift();
+    store(K.cloudOut(state.org), state.cloudOut);
+  }
+  cloudFlushing = false;
+  updateSyncUI();
+}
+window.addEventListener("online", flushCloud);
+/* entries saved on this device before the move to the cloud */
+function localOrgsWithData(){
+  if(!state.cloud) return [];
+  const ids = Object.keys(dynOrgs()).concat(Object.keys(ORGS)).filter(o => o !== "demo");
+  return ids.filter(o => !load(K.migrated(o), false) && (load(K.rec(o), []) || []).length);
+}
+function offerLocalImport(){
+  const pending = localOrgsWithData();
+  $("#importLocalBtn").classList.toggle("hidden", !pending.length);
+  if(!pending.length) return;
+  const n = pending.reduce((s,o) => s + migrateRecords(load(K.rec(o), [])).length, 0);
+  if(confirm(t().importPrompt.replace("{n}", n))) importLocal(pending);
+}
+function importLocal(orgs){
+  orgs = orgs || localOrgsWithData();
+  let n = 0;
+  orgs.forEach(o => {
+    (load(K.cli(o), []) || []).forEach(name => { if(!state.clients.some(c => norm(c) === norm(name))){ state.clients.push(name); cloudClient(name, "upsert"); } });
+    (load(K.cat(o), []) || []).forEach(cat => { if(!state.categories.some(c => c.id === cat.id)){ state.categories.push(cat); cloudCat(cat, "upsert"); } });
+    migrateRecords(load(K.rec(o), [])).forEach(r => {
+      if(state.records.some(x => x.id === r.id)) return;
+      state.records.push(r); cloudRec(r, "upsert"); n++;
+    });
+    store(K.migrated(o), true);
+  });
+  saveOrgData();
+  renderAll();
+  rebuildForms();
+  $("#importLocalBtn").classList.add("hidden");
+  toast(`${t().importDone} ${n}`);
 }
 
 /* ============================================================
@@ -1062,7 +1409,7 @@ async function flushOutbox(){
   updateSyncUI();
 }
 function updateSyncUI(){
-  const n = state.outbox.length;
+  const n = state.outbox.length + state.cloudOut.length;
   const pill = $("#syncPill");
   if(pill){
     pill.classList.toggle("hidden", n === 0);
@@ -1394,7 +1741,9 @@ function migrateRecords(list){
 }
 function rememberClient(name){
   const q = norm(name);
-  if(!state.clients.some(c => norm(c) === q)) state.clients.push(name);
+  if(state.clients.some(c => norm(c) === q)) return;
+  state.clients.push(name);
+  cloudClient(name, "upsert");
 }
 function saveEntry(){
   const v = entryForm.validate();
@@ -1414,7 +1763,7 @@ function saveEntry(){
   }));
   rows.forEach(r => state.records.push(r));
   saveOrgData();
-  rows.forEach(r => queue(r, "create"));
+  rows.forEach(r => { cloudRec(r, "upsert"); queue(r, "create"); });
   toast(rows.length > 1 ? `${t().savedN} ${rows.length}` : t().saved);
   entryForm.reset();
   renderRecent();
@@ -1432,6 +1781,7 @@ function updateEntry(){
       updatedAt: new Date().toISOString()
     });
     saveOrgData();
+    cloudRec(state.records[i], "upsert");
     queue(state.records[i], "update");
   }
   closeModal();
@@ -1443,7 +1793,7 @@ function deleteEntry(){
   const rec = state.records.find(r => r.id === state.editingId);
   state.records = state.records.filter(r => r.id !== state.editingId);
   saveOrgData();
-  if(rec) queue(rec, "delete");
+  if(rec){ cloudRec(rec, "delete"); queue(rec, "delete"); }
   closeModal();
   toast(t().deleted);
   renderAll();
@@ -1561,6 +1911,8 @@ function renderSettings(){
   $("#kvUser").textContent = state.user || "";
   $("#kvOrg").textContent = orgCfg()[state.lang] || orgCfg().he;
   $("#kvSync").textContent = orgCfg().webhook ? t().syncOn : t().syncOff;
+  $("#kvCloud").textContent = state.cloud ? t().cloudOn : t().cloudOff;
+  $("#importLocalBtn").classList.toggle("hidden", !localOrgsWithData().length);
   updateSyncUI();
 }
 function renderAll(){ renderRecent(); renderDash(); renderSettings(); }
@@ -1578,6 +1930,7 @@ function addClient(){
   names.forEach(n => {
     if(state.clients.some(c => norm(c) === norm(n))){ dupes++; return; }
     state.clients.push(n);
+    cloudClient(n, "upsert");
     added++;
   });
   if(!added){ err.textContent = t().errExists; return; }
@@ -1591,6 +1944,7 @@ function addClient(){
 function removeClient(name){
   if(!confirm(t().confirmRemoveClient)) return;
   state.clients = state.clients.filter(c => c !== name);
+  cloudClient(name, "delete");
   saveOrgData();
   renderSettings();
   toast(t().removed);
@@ -1601,7 +1955,9 @@ function addCat(){
   err.textContent = "";
   if(!label){ err.textContent = t().errEmpty; el.focus(); return; }
   if(state.categories.some(c => norm(c.he) === norm(label) || norm(c.en) === norm(label))){ err.textContent = t().errExists; return; }
-  state.categories.push({ id:"c_" + uid(), he:label, en:label });
+  const cat = { id:"c_" + uid(), he:label, en:label };
+  state.categories.push(cat);
+  cloudCat(cat, "upsert");
   saveOrgData();
   el.value = "";
   renderSettings();
@@ -1611,6 +1967,7 @@ function addCat(){
 function removeCat(id){
   if(!confirm(t().confirmRemoveCat)) return;
   state.categories = state.categories.filter(c => c.id !== id);
+  cloudCat({ id }, "delete");
   saveOrgData();
   renderSettings();
   rebuildForms();
@@ -1640,10 +1997,15 @@ function applyLang(){
   });
   $("#langHe").setAttribute("aria-pressed", state.lang === "he");
   $("#langEn").setAttribute("aria-pressed", state.lang === "en");
+  if(cloudMode()){
+    $('[data-i18n="setupNote"]').textContent = L.setupNoteCloud;
+    $('[data-i18n="securitySub"]').textContent = L.securitySubCloud;
+  }
+  $("#toForgot").classList.toggle("hidden", !cloudMode());
   const pinEmail = $("#pinPanel").dataset.email;
   if(pinEmail){
     const acc = findAccount(pinEmail);
-    if(acc) $("#pinWho").innerHTML = `${esc(orgNameOf(acc.org))}<span>${esc(acc.email)}</span>`;
+    if(acc) $("#pinWho").innerHTML = `${esc(orgNameOf(acc.org) || acc.firm || "")}<span>${esc(acc.email)}</span>`;
   }
 
   if(state.user){
@@ -1780,8 +2142,63 @@ $("#addClient").addEventListener("click", addClient);
 $("#newClient").addEventListener("keydown", e => { if(e.key === "Enter" && (e.ctrlKey || e.metaKey)) addClient(); });
 $("#addCat").addEventListener("click", addCat);
 $("#newCat").addEventListener("keydown", e => { if(e.key === "Enter") addCat(); });
-$("#retryBtn").addEventListener("click", () => { flushOutbox(); toast(state.outbox.length ? t().sent : t().allSent); });
-$("#logoutBtn").addEventListener("click", logout);
+$("#retryBtn").addEventListener("click", async () => { await flushCloud(); flushOutbox(); toast(state.outbox.length + state.cloudOut.length ? t().sent : t().allSent); });
+$("#lockBtn").addEventListener("click", logout);
+$("#logoutBtn").addEventListener("click", () => { if(state.cloud) signOutDevice(); else logout(); });
+$("#importLocalBtn").addEventListener("click", () => importLocal());
+$("#signOutFromPin").addEventListener("click", signOutDevice);
+$("#toForgot").addEventListener("click", () => { $("#forgotEmail").value = $("#loginEmail").value; showPanel("forgotPanel"); });
+$("#forgotBack").addEventListener("click", () => showPanel("loginPanel"));
+$("#confirmBack").addEventListener("click", () => showPanel("loginPanel"));
+$("#forgotBtn").addEventListener("click", async () => {
+  const email = $("#forgotEmail").value.trim().toLowerCase();
+  const err = $("#forgotErr");
+  err.textContent = "";
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent = t().errEmail; return; }
+  $("#forgotBtn").disabled = true;
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: SITE_URL });
+  $("#forgotBtn").disabled = false;
+  if(error && !/rate limit|too many/i.test(error.message || "")){ err.textContent = cloudErr(error, t().errCloud); return; }
+  toast(t().sentReset);
+  showPanel("loginPanel");
+});
+$("#forgotEmail").addEventListener("keydown", e => { if(e.key === "Enter") $("#forgotBtn").click(); });
+$("#resetBtn").addEventListener("click", async () => {
+  const np = $("#resetPass").value, np2 = $("#resetPass2").value, err = $("#resetErr");
+  err.textContent = "";
+  if(np.length < 6){ err.textContent = t().errShortPass; return; }
+  if(np !== np2){ err.textContent = t().errMatch; return; }
+  $("#resetBtn").disabled = true;
+  const { data, error } = await sb.auth.updateUser({ password: np });
+  $("#resetBtn").disabled = false;
+  if(error){ err.textContent = cloudErr(error, t().errCloud); return; }
+  $("#resetPass").value = ""; $("#resetPass2").value = "";
+  history.replaceState(null, "", location.pathname + location.search);
+  toast(t().resetDone);
+  cloudUser = data.user;
+  store(KA.last, data.user.email.toLowerCase());
+  store(K.session, { email: data.user.email.toLowerCase(), at:new Date().toISOString() });
+  await enterCloud(data.user);
+});
+$("#resetPass2").addEventListener("keydown", e => { if(e.key === "Enter") $("#resetBtn").click(); });
+$("#pinSetupBtn").addEventListener("click", async () => {
+  const pin = $("#pinSetupInput").value.trim(), err = $("#pinSetupErr");
+  err.textContent = "";
+  if(!/^\d{4,6}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
+  const user = pendingPinUser || cloudUser;
+  if(!user){ showPanel("loginPanel"); return; }
+  upsertLocalAccount({ email: user.email.toLowerCase(), cloud:true, pinHash: await pinHash(user.email, pin) });
+  $("#pinSetupInput").value = "";
+  pendingPinUser = null;
+  await enterCloud(user);
+});
+$("#pinSetupSkip").addEventListener("click", async () => {
+  const user = pendingPinUser || cloudUser;
+  $("#pinSetupInput").value = "";
+  pendingPinUser = null;
+  if(user) await enterCloud(user); else showPanel("loginPanel");
+});
+$("#pinSetupInput").addEventListener("keydown", e => { if(e.key === "Enter") $("#pinSetupBtn").click(); });
 
 document.addEventListener("click", e => {
   const head = e.target.closest("[data-group]");
@@ -1826,9 +2243,36 @@ $("#logoHead").src = LOGO_SRC;
 $("#logoLogin").src = LOGO_SRC;
 $("#favicon").href = LOGO_SRC;
 applyLang();
-const session = load(K.session, null);
-if(session && findAccount(session.email)) startSession(session.email, session.org);
-else openLoginScreen();
+async function boot(){
+  if(sb){
+    sb.auth.onAuthStateChange((event, session) => {
+      if(event === "PASSWORD_RECOVERY") showPanel("resetPanel");
+      if(event === "SIGNED_OUT") cloudUser = null;
+    });
+    let session = null;
+    try{ session = (await sb.auth.getSession()).data.session; }catch(e){}
+    if(session && session.user){
+      cloudUser = session.user;
+      if(RECOVERY_LINK){ showPanel("resetPanel"); return; }
+      const email = session.user.email.toLowerCase();
+      const unlocked = load(K.session, null);
+      const acc = findAccount(email);
+      if(unlocked && unlocked.email === email){ await enterCloud(session.user); return; }
+      if(acc && acc.pinHash){ openLoginScreen(); return; }
+      await enterCloud(session.user);
+      return;
+    }
+    // no cloud session on this device: the demo account may still be open locally
+    const local = load(K.session, null);
+    if(local && isDemo(local.email)) startSession(local.email, local.org);
+    else openLoginScreen();
+    return;
+  }
+  const session = load(K.session, null);
+  if(session && findAccount(session.email)) startSession(session.email, session.org);
+  else openLoginScreen();
+}
+boot();
 </script>
 </body>
 </html>
