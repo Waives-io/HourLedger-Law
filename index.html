@@ -106,6 +106,16 @@ html[dir="rtl"] input[type="date"].control{text-align:right}
 input[type="email"].control,input[type="password"].control{direction:ltr;text-align:left}
 .err{display:block;color:var(--error);font-size:12.5px;font-weight:600;margin-top:6px}
 .control.invalid{border-color:var(--error);box-shadow:0 0 0 3px rgba(163,56,47,.14)}
+/* password fields: eye toggle sits inside the control, on the LTR end */
+.pw-wrap{position:relative;display:block;width:100%}
+.pw-wrap .control{padding-right:46px}
+.pw-wrap .control.pin{padding-right:46px;padding-left:46px}
+.pw-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;background:transparent;border-radius:var(--r-sm);color:var(--ink-faint);display:inline-flex;align-items:center;justify-content:center;transition:.18s var(--ease)}
+.pw-toggle:hover{color:var(--navy);background:var(--surface-2)}
+.pw-toggle svg{width:20px;height:20px}
+.pw-toggle .eye-off{display:none}
+.pw-toggle[aria-pressed="true"] .eye-on{display:none}
+.pw-toggle[aria-pressed="true"] .eye-off{display:block}
 
 /* ===== Combobox ===== */
 .combo{position:relative}
@@ -541,6 +551,7 @@ const I18N = {
     loginNote:"הכניסה נדרשת פעם אחת — המכשיר יזכור אותך",
     errLogin:"אימייל או סיסמה שגויים", errFields:"יש למלא את כל השדות",
     toLogin:"כבר יש חשבון? כניסה", toSetup:"פתיחת חשבון חדש", usePassword:"כניסה עם סיסמה",
+    showPass:"הצגת הסיסמה", hidePass:"הסתרת הסיסמה",
     fFirm:"שם המשרד", fPassNew:"סיסמה", fPass2:"אימות סיסמה",
     fPin:"קוד כניסה", fPinNew:"קוד כניסה מהיר", fPinHint:"4 ספרות, לכניסות הבאות במכשיר הזה",
     enter:"כניסה", createAccount:"פתיחת חשבון",
@@ -606,6 +617,7 @@ const I18N = {
     loginNote:"Sign in once — this device will remember you",
     errLogin:"Wrong email or password", errFields:"Fill in every field",
     toLogin:"Already have an account? Sign in", toSetup:"Create a new account", usePassword:"Sign in with password",
+    showPass:"Show password", hidePass:"Hide password",
     fFirm:"Office name", fPassNew:"Password", fPass2:"Confirm password",
     fPin:"Access code", fPinNew:"Quick access code", fPinHint:"4 digits, for next logins on this device",
     enter:"Enter", createAccount:"Create account",
@@ -1782,7 +1794,34 @@ document.addEventListener("click", e => {
   if(dk){ removeCat(dk.dataset.delCat); return; }
 });
 
+/* Eye toggle for every password / access-code input */
+const EYE_SVG = `<svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+<svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1"/><path d="M6.6 6.6C3.9 8.4 2 12 2 12s3.5 7 10 7a9.8 9.8 0 0 0 4.4-1"/></svg>`;
+function installPasswordToggles(){
+  document.querySelectorAll('input[type="password"]').forEach(inp => {
+    if(inp.parentElement.classList.contains("pw-wrap")) return;
+    const wrap = document.createElement("span");
+    wrap.className = "pw-wrap";
+    inp.parentNode.insertBefore(wrap, inp);
+    wrap.appendChild(inp);
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "pw-toggle"; btn.tabIndex = -1;
+    btn.setAttribute("aria-pressed", "false");
+    btn.innerHTML = EYE_SVG;
+    btn.addEventListener("click", () => {
+      const show = inp.type === "password";
+      inp.type = show ? "text" : "password";
+      btn.setAttribute("aria-pressed", show);
+      btn.setAttribute("aria-label", show ? t().hidePass : t().showPass);
+      inp.focus();
+    });
+    wrap.appendChild(btn);
+  });
+  document.querySelectorAll(".pw-toggle").forEach(b => b.setAttribute("aria-label", b.getAttribute("aria-pressed") === "true" ? t().hidePass : t().showPass));
+}
+
 /* boot */
+installPasswordToggles();
 $("#logoHead").src = LOGO_SRC;
 $("#logoLogin").src = LOGO_SRC;
 $("#favicon").href = LOGO_SRC;
