@@ -207,10 +207,18 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .toolbar .control{flex:1;min-width:180px;padding:11px 13px;font-size:15px}
 .toolbar .btn{padding:11px 16px;font-size:14px}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
-.chip{border:1px solid var(--line-strong);background:var(--white);border-radius:var(--r-pill);padding:7px 13px;font-size:13px;font-weight:700;color:var(--ink-soft);transition:.18s var(--ease)}
-.chip:hover{border-color:var(--steel)}
-.chip[aria-pressed="true"]{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.preset{border:1px solid var(--line-strong);background:var(--white);border-radius:var(--r-pill);padding:7px 13px;font-size:13px;font-weight:700;color:var(--ink-soft);transition:.18s var(--ease)}
+.preset:hover{border-color:var(--steel)}
+.preset[aria-pressed="true"]{background:var(--navy);color:var(--white);border-color:var(--navy)}
+.dash-head{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-bottom:4px}
+.dash-head .card-title{margin:0}
+.stats-inline{display:flex;gap:8px}
+.stats-inline .stat{padding:6px 12px;display:flex;align-items:baseline;gap:6px}
+.stats-inline .stat .k{font-size:11.5px}
+.stats-inline .stat .v{font-size:17px;margin:0}
+.bd-row .bd{flex:none;color:var(--ink-faint);font-weight:600;font-variant-numeric:tabular-nums;font-size:12.5px}
+.lother{margin-top:6px;padding:9px 12px;font-size:14px;font-weight:500}
 .range-inputs{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:16px}
 .range-inputs label{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:12px;font-weight:700;color:var(--ink-faint)}
 .range-inputs .control{padding:9px 10px;font-size:14px;min-width:0}
@@ -418,35 +426,32 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 
   <section id="viewDash" class="hidden">
     <div class="card">
-      <h1 class="card-title" data-i18n="dashTitle">דשבורד חיובי שעות</h1>
-      <p class="card-sub" data-i18n="dashSub">חיתוך לפי לקוח או לפי תאריך</p>
+      <div class="dash-head">
+        <h1 class="card-title" data-i18n="dashTitle">דשבורד חיובי שעות</h1>
+        <div class="stats-inline">
+          <div class="stat"><span class="k" data-i18n="totalHours">סך שעות</span><span class="v" id="statHours">0</span></div>
+          <div class="stat"><span class="k" data-i18n="totalEntries">דיווחים</span><span class="v" id="statCount">0</span></div>
+        </div>
+      </div>
+      <p class="card-sub" data-i18n="dashSub">בחרו את החיתוך הרצוי</p>
 
       <div class="seg" role="group" aria-label="mode">
         <button type="button" id="modeClient" aria-pressed="true" data-i18n="byClient">לפי לקוח</button>
         <button type="button" id="modeDate" aria-pressed="false" data-i18n="byDate">לפי תאריך</button>
         <button type="button" id="modeCat" aria-pressed="false" data-i18n="byCategory">לפי קטגוריה</button>
       </div>
-      <div class="seg sub hidden" id="periodSeg" role="group" aria-label="period">
-        <button type="button" id="periodMonth" aria-pressed="true" data-i18n="monthly">חודשי</button>
-        <button type="button" id="periodQuarter" aria-pressed="false" data-i18n="quarterly">רבעוני</button>
-      </div>
 
-      <div class="chips" role="group" aria-label="range presets">
-        <button type="button" class="chip" data-preset="month" data-i18n="presetMonth">החודש</button>
-        <button type="button" class="chip" data-preset="prev" data-i18n="presetPrev">חודש שעבר</button>
-        <button type="button" class="chip" data-preset="quarter" data-i18n="presetQuarter">הרבעון</button>
-        <button type="button" class="chip" data-preset="year" data-i18n="presetYear">השנה</button>
-        <button type="button" class="chip" data-preset="all" data-i18n="presetAll">הכל</button>
+      <div class="presets" role="group" aria-label="range presets">
+        <button type="button" class="preset" data-preset="month" data-i18n="presetMonth">החודש</button>
+        <button type="button" class="preset" data-preset="prev" data-i18n="presetPrev">חודש שעבר</button>
+        <button type="button" class="preset" data-preset="quarter" data-i18n="presetQuarter">הרבעון</button>
+        <button type="button" class="preset" data-preset="year" data-i18n="presetYear">השנה</button>
+        <button type="button" class="preset" data-preset="all" data-i18n="presetAll">הכל</button>
       </div>
       <div class="range-inputs">
         <label><span data-i18n="fromDate">מתאריך</span><input type="date" class="control" id="rangeFrom"></label>
         <label><span data-i18n="toDate">עד תאריך</span><input type="date" class="control" id="rangeTo"></label>
         <button type="button" class="btn btn-ghost" id="rangeClear" data-i18n="clearRange">ניקוי</button>
-      </div>
-
-      <div class="stats">
-        <div class="stat"><div class="k" data-i18n="totalHours">סך שעות</div><div class="v" id="statHours">0</div></div>
-        <div class="stat"><div class="k" data-i18n="totalEntries">דיווחים</div><div class="v" id="statCount">0</div></div>
       </div>
 
       <div class="toolbar">
@@ -655,7 +660,7 @@ const I18N = {
     errCrypto:"יש לפתוח את האפליקציה בכתובת https",
     entryTitle:"דיווח שעות", entrySub:"מילוי מהיר של שעות חיוב ללקוח",
     todayTitle:"הדיווחים האחרונים",
-    dashTitle:"דשבורד חיובי שעות", dashSub:"חיתוך לפי לקוח או לפי תאריך",
+    dashTitle:"דשבורד חיובי שעות", dashSub:"בחרו את החיתוך הרצוי",
     navEntry:"דיווח שעות", navDash:"דשבורד", navSettings:"הגדרות",
     fDate:"תאריך דיווח", fClient:"שם הלקוח", fCats:"עבור מה לחייב",
     fCatsHint:"ניתן לבחור יותר מקטגוריה אחת", fHours:"מספר שעות",
@@ -675,7 +680,8 @@ const I18N = {
     byClient:"לפי לקוח", byDate:"לפי תאריך", byCategory:"לפי קטגוריה", monthly:"חודשי", quarterly:"רבעוני",
     presetMonth:"החודש", presetPrev:"חודש שעבר", presetQuarter:"הרבעון", presetYear:"השנה", presetAll:"הכל",
     fromDate:"מתאריך", toDate:"עד תאריך", clearRange:"ניקוי",
-    bdByPeriod:"פירוט לפי תקופה", bdByClient:"פירוט לפי לקוח",
+    bdByPeriod:"פירוט לפי חודש", bdByClient:"פירוט לפי לקוח", bdByClientDate:"פירוט לפי לקוח ותאריך",
+    phOther:"פירוט — מה בוצע?", clientAddedList:"הלקוח נוסף לרשימה",
     totalHours:"סך שעות", totalEntries:"דיווחים", searchPh:"חיפוש לקוח…",
     export:"ייצוא CSV", noData:"אין דיווחים להצגה", entries:"דיווחים", entry:"דיווח",
     edit:"עריכה", hoursShort:"ש׳",
@@ -735,7 +741,7 @@ const I18N = {
     errCrypto:"Open the app over https",
     entryTitle:"Time entry", entrySub:"Log billable hours for a client",
     todayTitle:"Recent entries",
-    dashTitle:"Hours dashboard", dashSub:"Break down by client or by date",
+    dashTitle:"Hours dashboard", dashSub:"Choose a breakdown",
     navEntry:"Time entry", navDash:"Dashboard", navSettings:"Settings",
     fDate:"Entry date", fClient:"Client name", fCats:"Billable activity",
     fCatsHint:"More than one may be selected", fHours:"Hours",
@@ -755,7 +761,8 @@ const I18N = {
     byClient:"By client", byDate:"By date", byCategory:"By activity", monthly:"Monthly", quarterly:"Quarterly",
     presetMonth:"This month", presetPrev:"Last month", presetQuarter:"This quarter", presetYear:"This year", presetAll:"All",
     fromDate:"From", toDate:"To", clearRange:"Clear",
-    bdByPeriod:"Breakdown by period", bdByClient:"Breakdown by client",
+    bdByPeriod:"Breakdown by month", bdByClient:"Breakdown by client", bdByClientDate:"Breakdown by client and date",
+    phOther:"Details — what was done?", clientAddedList:"Client added to the list",
     totalHours:"Total hours", totalEntries:"Entries", searchPh:"Search client…",
     export:"Export CSV", noData:"No entries to display", entries:"entries", entry:"entry",
     edit:"Edit", hoursShort:"h",
@@ -867,6 +874,9 @@ function catLabelHe(id){
   const c = state.categories.find(x => x.id === id);
   return c ? (c.he || c.en || id) : id;
 }
+/* "other" carries free text; show it next to the label */
+const recLabel   = r => catLabel(r.category)   + (r.otherText ? " — " + r.otherText : "");
+const recLabelHe = r => catLabelHe(r.category) + (r.otherText ? " — " + r.otherText : "");
 function lev(a,b){
   if(a === b) return 0;
   const m = a.length, n = b.length;
@@ -1109,10 +1119,7 @@ function startSession(email, org){
   state.outbox = load(K.out(org), []);
   state.cloudOut = load(K.cloudOut(org), []);
   const prefs = load(K.prefs(email), null);
-  if(prefs){
-    if(prefs.dashMode) state.dashMode = prefs.dashMode;
-    if(prefs.period) state.period = prefs.period;
-  }
+  if(prefs && prefs.dashMode) state.dashMode = prefs.dashMode;
   saveOrgData();
   store(KA.last, email);
   $("#loginView").classList.add("hidden");
@@ -1128,16 +1135,13 @@ function startSession(email, org){
 }
 
 function savePrefs(){
-  if(state.user) store(K.prefs(state.user), { dashMode: state.dashMode, period: state.period });
+  if(state.user) store(K.prefs(state.user), { dashMode: state.dashMode });
 }
 function applyDashPrefs(){
   const m = state.dashMode;
   $("#modeClient").setAttribute("aria-pressed", m === "client");
   $("#modeDate").setAttribute("aria-pressed", m === "date");
   $("#modeCat").setAttribute("aria-pressed", m === "cat");
-  $("#periodSeg").classList.toggle("hidden", m === "cat");
-  $("#periodMonth").setAttribute("aria-pressed", state.period === "month");
-  $("#periodQuarter").setAttribute("aria-pressed", state.period === "quarter");
   syncRangeUI();
 }
 /* Date range filter (dashboard + CSV) — not persisted, every session starts with "all" */
@@ -1239,12 +1243,12 @@ async function enterCloud(user){
 }
 const recToRow = r => ({
   org_id: state.orgInfo.id, id: r.id, group_id: r.groupId || r.id, date: r.date, client: r.client,
-  category: r.category, hours: r.hours, notes: r.notes || "", user_email: state.user || "",
+  category: r.category, hours: r.hours, notes: r.notes || "", other_text: r.otherText || "", user_email: state.user || "",
   created_at: r.createdAt || new Date().toISOString(), updated_at: r.updatedAt || r.createdAt || new Date().toISOString()
 });
 const rowToRec = x => ({
   id: x.id, groupId: x.group_id || x.id, date: x.date, client: x.client, category: x.category,
-  hours: Number(x.hours), notes: x.notes || "", createdAt: x.created_at, updatedAt: x.updated_at
+  hours: Number(x.hours), notes: x.notes || "", otherText: x.other_text || "", createdAt: x.created_at, updatedAt: x.updated_at
 });
 /* replace the local cache with the cloud copy — skipped while offline edits are still waiting */
 async function pullCloud(){
@@ -1353,8 +1357,9 @@ function payloadFor(rec, action){
     date: rec.date,
     groupId: rec.groupId || rec.id,
     client: rec.client,
-    category: catLabelHe(rec.category),
+    category: recLabelHe(rec),
     categoryId: rec.category,
+    otherText: rec.otherText || "",
     hours: rec.hours,
     notes: rec.notes || "",
     user: state.user || "",
@@ -1486,6 +1491,7 @@ function createForm(root, prefix, mode){
 
   let active = -1, options = [];
   const hoursMap = {};
+  let otherText = "";
 
   /* ---- client combobox ---- */
   function openList(){
@@ -1523,6 +1529,13 @@ function createForm(root, prefix, mode){
     if(!options[i]) return;
     cliEl.value = options[i].value;
     closeList();
+    if(options[i].type === "new"){
+      // add to the office list right away so the choice is visibly confirmed
+      rememberClient(options[i].value);
+      saveOrgData();
+      renderSettings();
+      toast(t().clientAddedList);
+    }
     checkClient();
     cliEl.classList.remove("invalid");
     $('[data-e="client"]', root).textContent = "";
@@ -1586,7 +1599,7 @@ function createForm(root, prefix, mode){
           <input type="number" class="control lh" data-lh="${esc(id)}" min="0.25" max="24" step="0.25"
                  inputmode="decimal" placeholder="0.00" aria-label="${esc(catLabel(id))}" value="${hoursMap[id] ? fmtHours(hoursMap[id]) : ""}">
           <button type="button" class="step" data-lstep="0.25" data-for="${esc(id)}" aria-label="+0.25" tabindex="-1">+</button>
-        </div>`).join("")
+        </div>${id === "other" ? `<input type="text" class="control lother" data-lother placeholder="${esc(t().phOther)}" value="${esc(otherText)}" aria-label="${esc(t().phOther)}">` : ""}`).join("")
       : `<div class="lines-empty">${esc(t().linesEmpty)}</div>`;
     updateTotal();
   }
@@ -1641,6 +1654,7 @@ function createForm(root, prefix, mode){
     updateTotal();
   });
   linesEl.addEventListener("input", e => {
+    if(e.target.matches("[data-lother]")){ otherText = e.target.value; return; }
     const input = e.target.closest("[data-lh]");
     if(!input) return;
     const v = parseFloat(input.value);
@@ -1668,6 +1682,7 @@ function createForm(root, prefix, mode){
       const lines = v.lines || [];
       const ids = lines.map(l => l.category);
       lines.forEach(l => { if(l.hours) hoursMap[l.category] = l.hours; });
+      otherText = (lines.find(l => l.category === "other") || {}).otherText || "";
       chipsEl.querySelectorAll(".chip").forEach(c => {
         const on = ids.includes(c.dataset.cat);
         c.setAttribute("aria-pressed", on ? "true" : "false");
@@ -1681,7 +1696,7 @@ function createForm(root, prefix, mode){
         date: dateEl.value,
         client: cliEl.value.trim(),
         notes: notesEl.value.trim(),
-        lines: selectedCats().map(id => ({ category:id, hours: snapHours(hoursMap[id]) }))
+        lines: selectedCats().map(id => ({ category:id, hours: snapHours(hoursMap[id]), otherText: id === "other" ? otherText.trim() : "" }))
       };
     },
     validate(){
@@ -1758,6 +1773,7 @@ function saveEntry(){
     client: v.client,
     category: l.category,
     hours: l.hours,
+    otherText: l.otherText || "",
     notes: v.notes,
     createdAt: created
   }));
@@ -1777,7 +1793,7 @@ function updateEntry(){
   if(i > -1){
     state.records[i] = Object.assign({}, state.records[i], {
       date: v.date, client: v.client, notes: v.notes,
-      category: v.lines[0].category, hours: v.lines[0].hours,
+      category: v.lines[0].category, hours: v.lines[0].hours, otherText: v.lines[0].otherText || "",
       updatedAt: new Date().toISOString()
     });
     saveOrgData();
@@ -1803,7 +1819,7 @@ function deleteEntry(){
    Rendering
    ============================================================ */
 function rowHTML(r, showClient){
-  const cats = `<span class="tag">${esc(catLabel(r.category))}</span>`;
+  const cats = `<span class="tag">${esc(recLabel(r))}</span>`;
   return `<div class="row">
     <div class="rmain">
       <div class="rtop">
@@ -1837,17 +1853,25 @@ function periodLabel(key){
 }
 const sumHours = rows => rows.reduce((s,r) => s + r.hours, 0);
 /* Sub-totals shown inside an open group: client → per period, date / category → per client */
+/* client → per month · date → per client · category → per client and date */
 function breakdownHTML(rows){
   const mode = state.dashMode;
-  const keyOf = mode === "client" ? (r => periodKey(r.date)) : (r => r.client);
+  const keyOf = mode === "client" ? (r => periodKey(r.date)) : mode === "cat" ? (r => r.client + "\u0000" + r.date) : (r => r.client);
   const sub = {};
   rows.forEach(r => { sub[keyOf(r)] = (sub[keyOf(r)] || 0) + r.hours; });
   const keys = Object.keys(sub);
   if(keys.length < 2) return "";
-  if(mode === "client") keys.sort().reverse(); else keys.sort((a,b) => sub[b] - sub[a]);
-  const title = mode === "client" ? t().bdByPeriod : t().bdByClient;
+  if(mode === "client") keys.sort().reverse();
+  else if(mode === "cat") keys.sort((a,b) => a.localeCompare(b));
+  else keys.sort((a,b) => sub[b] - sub[a]);
+  const title = mode === "client" ? t().bdByPeriod : mode === "cat" ? t().bdByClientDate : t().bdByClient;
+  const cell = k => {
+    if(mode === "client") return `<span class="bn">${esc(periodLabel(k))}</span>`;
+    if(mode === "cat"){ const [c,d] = k.split("\u0000"); return `<span class="bn">${esc(c)}</span><span class="bd">${esc(fmtDate(d))}</span>`; }
+    return `<span class="bn">${esc(k)}</span>`;
+  };
   return `<div class="breakdown"><div class="bd-title">${esc(title)}</div>${keys.map(k => `<div class="bd-row">
-      <span class="bn">${esc(mode === "client" ? periodLabel(k) : k)}</span>
+      ${cell(k)}
       <span class="bh">${fmtHours(sub[k])} ${esc(t().hoursShort)}</span>
     </div>`).join("")}</div>`;
 }
@@ -1871,7 +1895,8 @@ function renderDash(){
   if(!keys.length){ body.innerHTML = `<div class="empty">${esc(t().noData)}</div>`; return; }
 
   body.innerHTML = keys.map(k => {
-    const rows = groups[k].slice().sort((a,b) => b.date.localeCompare(a.date));
+    // inside a month the entries run oldest → newest; elsewhere newest first
+    const rows = groups[k].slice().sort((a,b) => mode === "date" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
     const sum = sumHours(rows);
     const open = !!state.openGroups[k];
     const name = mode === "client" ? k : mode === "cat" ? catLabel(k) : periodLabel(k);
@@ -2041,7 +2066,7 @@ function openModal(id){
   if(!rec) return;
   state.editingId = id;
   editForm = createForm($("#editForm"), "m", "single");
-  editForm.setValue({ date:rec.date, client:rec.client, notes:rec.notes, lines:[{category:rec.category, hours:rec.hours}] });
+  editForm.setValue({ date:rec.date, client:rec.client, notes:rec.notes, lines:[{category:rec.category, hours:rec.hours, otherText:rec.otherText || ""}] });
   $("#modalBg").classList.remove("hidden");
   document.body.style.overflow = "hidden";
   setTimeout(() => { const f = $("#editForm .control"); if(f) f.focus(); }, 50);
@@ -2064,7 +2089,7 @@ function exportCSV(){
   const recs = filteredRecords().sort((a,b) => a.date.localeCompare(b.date));
   const cell = s => `"${String(s == null ? "" : s).replace(/"/g,'""')}"`;
   const csv = "\uFEFF" + [[C.date,C.client,C.cats,C.hours,C.notes].map(cell).join(",")]
-    .concat(recs.map(r => [fmtDate(r.date), r.client, catLabel(r.category), fmtHours(r.hours), r.notes].map(cell).join(","))).join("\r\n");
+    .concat(recs.map(r => [fmtDate(r.date), r.client, recLabel(r), fmtHours(r.hours), r.notes].map(cell).join(","))).join("\r\n");
   const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -2126,14 +2151,6 @@ document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("clic
 $("#rangeFrom").addEventListener("change", e => setRange(e.target.value, state.rangeTo));
 $("#rangeTo").addEventListener("change", e => setRange(state.rangeFrom, e.target.value));
 $("#rangeClear").addEventListener("click", () => setRange("",""));
-$("#periodMonth").addEventListener("click", () => {
-  state.period = "month"; state.openGroups = {};
-  applyDashPrefs(); savePrefs(); renderDash();
-});
-$("#periodQuarter").addEventListener("click", () => {
-  state.period = "quarter"; state.openGroups = {};
-  applyDashPrefs(); savePrefs(); renderDash();
-});
 
 $("#dashSearch").addEventListener("input", e => { state.search = e.target.value; renderDash(); });
 $("#exportBtn").addEventListener("click", exportCSV);

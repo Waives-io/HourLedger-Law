@@ -46,12 +46,14 @@ create table if not exists public.records (
   category   text not null,
   hours      numeric(6,2) not null,
   notes      text not null default '',
+  other_text text not null default '',   -- free text when category = 'other'
   user_email text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   primary key (org_id, id)
 );
 create index if not exists records_org_date on public.records (org_id, date);
+alter table public.records add column if not exists other_text text not null default '';
 
 -- ---------- helpers ----------
 
