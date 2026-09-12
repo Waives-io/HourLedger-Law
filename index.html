@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HourLedger-Law — ניהול שעות</title>
+<meta name="theme-color" content="#1F4066">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HourLedger-Law">
+<link rel="icon" id="favicon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#FFFFFF;
+  --navy:#1F4066;
+  --steel:#7C96B5;
+  --gold:#B7995B;
+
+  --ink:var(--navy);
+  --ink-soft:rgba(31,64,102,.62);
+  --ink-faint:rgba(31,64,102,.40);
+  --line:rgba(31,64,102,.14);
+  --line-strong:rgba(31,64,102,.26);
+  --surface:rgba(124,150,181,.07);
+  --surface-2:rgba(124,150,181,.14);
+  --gold-soft:rgba(183,153,91,.14);
+  --error:#A3382F;
+
+  --r-sm:8px; --r-md:12px; --r-lg:18px; --r-pill:999px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --shadow:0 10px 30px rgba(31,64,102,.10);
+  --shadow-lg:0 18px 50px rgba(31,64,102,.18);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Assistant',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(900px 520px at 100% -8%, rgba(124,150,181,.20), transparent 60%),
+    radial-gradient(700px 460px at -10% 12%, rgba(183,153,91,.13), transparent 62%),
+    var(--white);
+  background-attachment:fixed;
+  min-height:100vh;
+  direction:rtl; text-align:right;
+  -webkit-font-smoothing:antialiased;
+}
+body.authed{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+html[dir="ltr"] body{direction:ltr;text-align:left}
+button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:var(--r-sm)}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+.hidden{display:none !important}
+
+/* ===== Login ===== */
+.login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.login-card{width:100%;max-width:400px;background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:30px 24px}
+.login-brand{display:flex;flex-direction:column;align-items:center;text-align:center;margin-bottom:26px}
+.login-brand img{width:86px;height:86px;object-fit:contain}
+.login-brand .name{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:700;color:var(--navy);line-height:1.1;margin-top:8px;letter-spacing:.5px}
+.login-brand .suffix,.brand .suffix{color:var(--gold);font-weight:600}
+.login-brand .suffix::before,.brand .suffix::before{content:"·";margin:0 4px;color:var(--steel)}
+.link-btn{display:block;width:100%;margin-top:14px;border:0;background:transparent;color:var(--navy);font-size:13.5px;font-weight:700;text-decoration:underline;text-underline-offset:3px;padding:6px}
+.login-sep{height:1px;background:var(--line);margin:18px 0}
+.login-brand .tag{font-size:13.5px;font-weight:600;color:var(--ink-soft)}
+.login-note{margin-top:16px;font-size:12.5px;color:var(--ink-faint);text-align:center;font-weight:600}
+
+/* ===== Header ===== */
+header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.90);backdrop-filter:saturate(1.6) blur(12px);border-bottom:1px solid var(--line)}
+.head-in{display:flex;align-items:center;gap:12px;padding:12px 0}
+.logo{width:44px;height:44px;flex:none;object-fit:contain}
+.brand{display:flex;flex-direction:column;line-height:1.05;min-width:0}
+.brand .name{font-family:'Cormorant Garamond',serif;font-size:25px;font-weight:700;letter-spacing:.4px;color:var(--navy);white-space:nowrap}
+.brand .sub{font-size:11.5px;font-weight:600;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lang-toggle{margin-inline-start:auto;display:flex;border:1px solid var(--line-strong);border-radius:var(--r-pill);overflow:hidden;background:var(--white);flex:none}
+.lang-toggle button{border:0;background:transparent;padding:7px 13px;font-weight:700;font-size:13px;color:var(--ink-faint);transition:.2s var(--ease)}
+.lang-toggle button[aria-pressed="true"]{background:var(--navy);color:var(--white)}
+.sync-pill{font-size:11.5px;font-weight:700;color:#8A6A22;background:var(--gold-soft);border:1px solid var(--gold);border-radius:var(--r-pill);padding:3px 10px;flex:none}
+
+/* ===== Cards ===== */
+main{padding-top:18px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:20px 18px;margin-bottom:16px}
+.card-title{display:flex;align-items:center;gap:10px;margin:0 0 4px;font-size:19px;font-weight:700}
+.card-title::before{content:"";width:4px;height:18px;border-radius:2px;background:var(--gold);flex:none}
+.card-sub{margin:0 0 18px;font-size:13.5px;color:var(--ink-soft)}
+
+/* ===== Fields ===== */
+.field{margin-bottom:18px;position:relative}
+.field > label,.field-label{display:block;font-weight:700;font-size:14px;margin-bottom:7px}
+.hint{font-weight:500;font-size:12.5px;color:var(--ink-faint);margin-inline-start:6px}
+.control{width:100%;padding:13px 14px;border:1px solid var(--line-strong);border-radius:var(--r-md);background:var(--white);font-size:16px;font-weight:500;transition:border-color .18s var(--ease), box-shadow .18s var(--ease)}
+.control:hover{border-color:var(--steel)}
+.control:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(124,150,181,.28)}
+textarea.control{min-height:92px;resize:vertical;line-height:1.5}
+input[type="date"].control{font-variant-numeric:tabular-nums}
+html[dir="rtl"] input[type="date"].control{text-align:right}
+input[type="email"].control,input[type="password"].control{direction:ltr;text-align:left}
+.err{display:block;color:var(--error);font-size:12.5px;font-weight:600;margin-top:6px}
+.control.invalid{border-color:var(--error);box-shadow:0 0 0 3px rgba(163,56,47,.14)}
+
+/* ===== Combobox ===== */
+.combo{position:relative}
+.combo-list{position:absolute;inset-inline:0;top:calc(100% + 6px);z-index:40;background:var(--white);border:1px solid var(--line-strong);border-radius:var(--r-md);box-shadow:var(--shadow-lg);max-height:262px;overflow-y:auto;padding:6px}
+.combo-opt{padding:11px 12px;border-radius:var(--r-sm);font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:8px}
+.combo-opt:hover,.combo-opt.active{background:var(--surface-2)}
+.combo-opt.new{color:var(--navy);font-weight:700;border-top:1px solid var(--line);margin-top:4px;padding-top:12px}
+.combo-opt.new .plus{color:var(--gold);font-weight:800}
+.combo-empty{padding:12px;font-size:13.5px;color:var(--ink-faint)}
+.note{margin-top:7px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.note.info{color:var(--ink-soft)}
+.note.warn{color:#8A6A22}
+.note button{border:1px solid var(--gold);background:var(--gold-soft);color:var(--navy);border-radius:var(--r-pill);padding:3px 11px;font-size:12px;font-weight:700}
+
+/* ===== Chips ===== */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line-strong);background:var(--white);border-radius:var(--r-pill);padding:9px 14px;font-size:14px;font-weight:600;color:var(--ink-soft);transition:.18s var(--ease)}
+.chip:hover{border-color:var(--steel);color:var(--navy)}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:var(--white)}
+.chip[aria-pressed="true"]::before{content:"✓";margin-inline-end:6px;color:var(--gold);font-weight:800}
+
+/* ===== Hours ===== */
+.hours-row{display:flex;align-items:center;gap:10px}
+.step{width:46px;height:46px;flex:none;border-radius:var(--r-md);border:1px solid var(--line-strong);background:var(--white);font-size:22px;font-weight:700;color:var(--navy);line-height:1;display:flex;align-items:center;justify-content:center;transition:.18s var(--ease)}
+.step:hover{background:var(--surface-2);border-color:var(--steel)}
+.hours-input{width:100%;text-align:center;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.quick{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.quick button{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-pill);padding:6px 12px;font-size:13px;font-weight:700;color:var(--ink-soft)}
+.quick button:hover{border-color:var(--gold);color:var(--navy);background:var(--gold-soft)}
+.hours-read{margin-top:8px;font-size:13px;color:var(--ink-faint);font-weight:600}
+
+/* ===== Billing lines ===== */
+.lines{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.line{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r-md);padding:8px 10px}
+.line .lcat{flex:1;min-width:0;font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.line .lh{width:78px;flex:none;text-align:center;font-size:16px;font-weight:700;padding:9px 4px;font-variant-numeric:tabular-nums}
+.line .step{width:38px;height:38px;font-size:19px}
+.lines-empty{font-size:13px;color:var(--ink-faint);font-weight:600;padding:10px 2px}
+.total{margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--gold-soft);border:1px solid var(--gold);border-radius:var(--r-md);padding:10px 13px;font-size:14px;font-weight:700}
+.total .tv{font-variant-numeric:tabular-nums;font-size:17px}
+
+/* ===== Buttons ===== */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:var(--r-md);padding:15px 22px;font-size:16px;font-weight:700;transition:.2s var(--ease)}
+.btn-primary{background:var(--navy);color:var(--white);box-shadow:0 8px 20px rgba(31,64,102,.22)}
+.btn-primary:hover{background:#17304d;transform:translateY(-1px)}
+.btn-ghost{background:var(--white);color:var(--navy);border:1px solid var(--line-strong)}
+.btn-ghost:hover{border-color:var(--steel);background:var(--surface)}
+.btn-danger{background:var(--white);color:var(--error);border:1px solid rgba(163,56,47,.4)}
+.btn-danger:hover{background:rgba(163,56,47,.07)}
+.btn-block{width:100%}
+
+/* ===== Dashboard ===== */
+.seg{display:flex;background:var(--surface-2);border-radius:var(--r-pill);padding:4px;gap:4px;margin-bottom:16px}
+.seg button{flex:1;border:0;background:transparent;border-radius:var(--r-pill);padding:11px 8px;font-size:14.5px;font-weight:700;color:var(--ink-soft);transition:.2s var(--ease)}
+.seg button[aria-pressed="true"]{background:var(--white);color:var(--navy);box-shadow:0 2px 8px rgba(31,64,102,.12)}
+.seg.sub button{padding:8px;font-size:13.5px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 14px}
+.stat .k{font-size:12px;font-weight:700;color:var(--ink-faint)}
+.stat .v{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px}
+.group{border:1px solid var(--line);border-radius:var(--r-md);margin-bottom:10px;overflow:hidden;background:var(--white)}
+.group-head{display:flex;align-items:center;gap:10px;width:100%;border:0;background:var(--white);padding:14px;text-align:inherit}
+.group-head:hover{background:var(--surface)}
+.group-head .caret{color:var(--gold);font-size:12px;transition:transform .2s var(--ease);flex:none}
+html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
+.group-head[aria-expanded="true"] .caret,html[dir="rtl"] .group-head[aria-expanded="true"] .caret{transform:rotate(90deg)}
+.group-head .gname{font-weight:700;font-size:15.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.group-head .gmeta{font-size:12.5px;color:var(--ink-faint);font-weight:600;flex:none}
+.group-head .ghours{font-weight:800;font-size:16px;color:var(--navy);font-variant-numeric:tabular-nums;flex:none;background:var(--gold-soft);border-radius:var(--r-pill);padding:3px 11px}
+.rows{border-top:1px solid var(--line);background:var(--surface)}
+.row{display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .rmain{flex:1;min-width:0}
+.row .rtop{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.row .rdate{font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.row .rclient{font-size:13.5px;color:var(--ink-soft);font-weight:600}
+.row .rcats{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.tag{background:var(--white);border:1px solid var(--line);border-radius:var(--r-pill);padding:2px 9px;font-size:11.5px;font-weight:600;color:var(--ink-soft)}
+.row .rnotes{margin-top:6px;font-size:13px;color:var(--ink-soft);line-height:1.45;white-space:pre-wrap}
+.row .rhours{font-weight:800;font-variant-numeric:tabular-nums;font-size:15px;flex:none}
+.row .redit{border:1px solid var(--line-strong);background:var(--white);border-radius:var(--r-sm);padding:6px 10px;font-size:12.5px;font-weight:700;color:var(--navy);flex:none}
+.row .redit:hover{border-color:var(--gold);background:var(--gold-soft)}
+.empty{text-align:center;padding:36px 16px;color:var(--ink-faint);font-weight:600;font-size:14.5px}
+.toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.toolbar .control{flex:1;min-width:180px;padding:11px 13px;font-size:15px}
+.toolbar .btn{padding:11px 16px;font-size:14px}
+
+/* ===== Settings lists ===== */
+.list{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;margin-bottom:12px;max-height:320px;overflow-y:auto}
+.list-item{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line);background:var(--white)}
+.list-item:last-child{border-bottom:0}
+.list-item .lname{flex:1;min-width:0;font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.list-item .lused{font-size:11.5px;color:var(--ink-faint);font-weight:700;flex:none}
+.list-item .lx{border:1px solid var(--line);background:var(--white);border-radius:var(--r-sm);width:30px;height:30px;flex:none;color:var(--ink-faint);font-weight:700;font-size:15px;line-height:1}
+.list-item .lx:hover{border-color:var(--error);color:var(--error);background:rgba(163,56,47,.06)}
+.add-row{display:flex;gap:8px;align-items:flex-start}
+.add-row textarea.control{min-height:56px;resize:vertical;line-height:1.4}
+.add-row .control{flex:1}
+.add-row .btn{padding:13px 18px;font-size:15px;flex:none}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv:last-child{border-bottom:0}
+.kv .k{color:var(--ink-soft);font-weight:600}
+.kv .v{font-weight:700;text-align:end;word-break:break-all;direction:ltr}
+
+/* ===== Bottom nav ===== */
+.nav{position:fixed;inset-inline:0;bottom:0;z-index:35;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
+.nav-in{max-width:760px;margin:0 auto;display:flex;gap:8px}
+.nav button{flex:1;border:0;background:transparent;border-radius:var(--r-md);padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12.5px;font-weight:700;color:var(--ink-faint);transition:.2s var(--ease)}
+.nav button svg{width:22px;height:22px}
+.nav button[aria-current="page"]{color:var(--navy);background:var(--surface-2)}
+.nav button[aria-current="page"] svg{stroke:var(--gold)}
+
+/* ===== Modal ===== */
+.modal-bg{position:fixed;inset:0;z-index:60;background:rgba(31,64,102,.45);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center}
+.modal{background:var(--white);width:100%;max-width:640px;max-height:92vh;overflow-y:auto;border-radius:var(--r-lg) var(--r-lg) 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom));box-shadow:var(--shadow-lg)}
+@media(min-width:700px){.modal-bg{align-items:center}.modal{border-radius:var(--r-lg)}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-head h2{margin:0;font-size:19px;font-weight:700}
+.modal-close{border:0;background:var(--surface-2);border-radius:var(--r-pill);width:34px;height:34px;font-size:18px;font-weight:700;color:var(--ink-soft)}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions .btn{flex:1}
+
+/* ===== Toast ===== */
+.toast{position:fixed;inset-inline:0;bottom:calc(96px + env(safe-area-inset-bottom));z-index:70;display:flex;justify-content:center;pointer-events:none}
+.toast-in{background:var(--navy);color:var(--white);border-radius:var(--r-pill);padding:12px 22px;font-weight:700;font-size:14.5px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:9px;opacity:0;transform:translateY(10px);transition:.28s var(--ease)}
+.toast-in.show{opacity:1;transform:translateY(0)}
+.toast-in .tick{color:var(--gold);font-weight:800}
+</style>
+</head>
+<body>
+
+<!-- ===== Login ===== -->
+<div class="login" id="loginView">
+  <div class="login-card">
+    <div class="login-brand">
+      <img id="logoLogin" alt="HourLedger">
+      <div class="name">HourLedger<span class="suffix">Law</span></div>
+      <div class="tag" data-i18n="loginTag">ניהול שעות למשרדי עורכי דין</div>
+    </div>
+
+    <div id="loginPanel">
+    <div class="field">
+      <label for="loginEmail" data-i18n="fEmail">אימייל</label>
+      <input type="email" id="loginEmail" class="control" autocomplete="username" inputmode="email" dir="ltr">
+    </div>
+    <div class="field">
+      <label for="loginPass" data-i18n="fPass">סיסמה</label>
+      <input type="password" id="loginPass" class="control" autocomplete="current-password" dir="ltr">
+      <span class="err" id="loginErr"></span>
+    </div>
+    <button type="button" class="btn btn-primary btn-block" id="loginBtn" data-i18n="login">כניסה</button>
+    <div class="login-note" data-i18n="loginNote">הכניסה נדרשת פעם אחת — המכשיר יזכור אותך</div>
+    <button type="button" class="link-btn" id="toSignup" data-i18n="toSignup">משרד חדש? פתיחת חשבון</button>
+    </div>
+
+    <div id="signupPanel" class="hidden">
+    <div class="field">
+      <label for="suFirm" data-i18n="fFirm">שם המשרד</label>
+      <input type="text" id="suFirm" class="control">
+    </div>
+    <div class="field">
+      <label for="suEmail" data-i18n="fEmail">אימייל</label>
+      <input type="email" id="suEmail" class="control" autocomplete="username" inputmode="email" dir="ltr">
+    </div>
+    <div class="field">
+      <label for="suPass" data-i18n="fPassNew">סיסמה חדשה</label>
+      <input type="password" id="suPass" class="control" autocomplete="new-password" dir="ltr">
+    </div>
+    <div class="field">
+      <label for="suPass2" data-i18n="fPass2">אימות סיסמה</label>
+      <input type="password" id="suPass2" class="control" autocomplete="new-password" dir="ltr">
+    </div>
+    <div class="field">
+      <label for="suCode" data-i18n="fCode">קוד הרשמה</label>
+      <input type="text" id="suCode" class="control" dir="ltr">
+      <span class="err" id="signupErr"></span>
+    </div>
+    <button type="button" class="btn btn-primary btn-block" id="signupBtn" data-i18n="signup">פתיחת חשבון</button>
+    <div class="login-note" data-i18n="signupNote">אחרי פתיחת החשבון מזינים את רשימת הלקוחות במסך ההגדרות</div>
+    <button type="button" class="link-btn" id="toLogin" data-i18n="toLogin">כבר יש חשבון? כניסה</button>
+  </div>
+</div>
+
+<!-- ===== App ===== -->
+<div id="appView" class="hidden">
+
+<header>
+  <div class="wrap head-in">
+    <img class="logo" id="logoHead" alt="HourLedger">
+    <div class="brand">
+      <span class="name">HourLedger<span class="suffix">Law</span></span>
+      <span class="sub" id="orgName"></span>
+    </div>
+    <span class="sync-pill hidden" id="syncPill"></span>
+    <div class="lang-toggle" role="group" aria-label="Language">
+      <button type="button" id="langHe" aria-pressed="true">עב</button>
+      <button type="button" id="langEn" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section id="viewEntry">
+    <div class="card">
+      <h1 class="card-title" data-i18n="entryTitle">דיווח שעות</h1>
+      <p class="card-sub" data-i18n="entrySub">מילוי מהיר של שעות חיוב ללקוח</p>
+      <div id="entryForm"></div>
+      <button type="button" class="btn btn-primary btn-block" id="saveBtn" data-i18n="save">שמירת דיווח</button>
+    </div>
+    <div class="card">
+      <h2 class="card-title" data-i18n="todayTitle">הדיווחים האחרונים</h2>
+      <div id="recentList"></div>
+    </div>
+  </section>
+
+  <section id="viewDash" class="hidden">
+    <div class="card">
+      <h1 class="card-title" data-i18n="dashTitle">דשבורד חיובי שעות</h1>
+      <p class="card-sub" data-i18n="dashSub">חיתוך לפי לקוח או לפי תאריך</p>
+
+      <div class="seg" role="group" aria-label="mode">
+        <button type="button" id="modeClient" aria-pressed="true" data-i18n="byClient">לפי לקוח</button>
+        <button type="button" id="modeDate" aria-pressed="false" data-i18n="byDate">לפי תאריך</button>
+      </div>
+      <div class="seg sub hidden" id="periodSeg" role="group" aria-label="period">
+        <button type="button" id="periodMonth" aria-pressed="true" data-i18n="monthly">חודשי</button>
+        <button type="button" id="periodQuarter" aria-pressed="false" data-i18n="quarterly">רבעוני</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="k" data-i18n="totalHours">סך שעות</div><div class="v" id="statHours">0</div></div>
+        <div class="stat"><div class="k" data-i18n="totalEntries">דיווחים</div><div class="v" id="statCount">0</div></div>
+      </div>
+
+      <div class="toolbar">
+        <input type="search" class="control" id="dashSearch" placeholder="חיפוש לקוח…" data-i18n-ph="searchPh">
+        <button type="button" class="btn btn-ghost" id="exportBtn" data-i18n="export">ייצוא CSV</button>
+      </div>
+
+      <div id="dashBody"></div>
+    </div>
+  </section>
+
+  <section id="viewSettings" class="hidden">
+    <div class="card">
+      <h1 class="card-title" data-i18n="clientsTitle">רשימת לקוחות</h1>
+      <p class="card-sub" data-i18n="clientsSub">הוספה והסרה של לקוחות הרשימה הנפתחת</p>
+      <div class="list" id="clientList"></div>
+      <div class="add-row">
+        <textarea class="control" id="newClient" rows="2" placeholder="שם לקוח חדש" data-i18n-ph="phNewClient"></textarea>
+        <button type="button" class="btn btn-primary" id="addClient" data-i18n="add">הוספה</button>
+      </div>
+      <span class="err" id="clientErr"></span>
+    </div>
+
+    <div class="card">
+      <h1 class="card-title" data-i18n="catsTitle">קטגוריות חיוב</h1>
+      <p class="card-sub" data-i18n="catsSub">הוספה והסרה של הערכים בשדה "עבור מה לחייב"</p>
+      <div class="list" id="catList"></div>
+      <div class="add-row">
+        <input type="text" class="control" id="newCat" placeholder="קטגוריה חדשה" data-i18n-ph="phNewCat">
+        <button type="button" class="btn btn-primary" id="addCat" data-i18n="add">הוספה</button>
+      </div>
+      <span class="err" id="catErr"></span>
+    </div>
+
+    <div class="card">
+      <h1 class="card-title" data-i18n="accountTitle">חשבון וסנכרון</h1>
+      <div class="kv"><span class="k" data-i18n="kUser">משתמש</span><span class="v" id="kvUser"></span></div>
+      <div class="kv"><span class="k" data-i18n="kOrg">משרד</span><span class="v" id="kvOrg"></span></div>
+      <div class="kv"><span class="k" data-i18n="kSync">סנכרון לגוגל שיטס</span><span class="v" id="kvSync"></span></div>
+      <div class="kv"><span class="k" data-i18n="kPending">ממתין לשליחה</span><span class="v" id="kvPending">0</span></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="retryBtn" data-i18n="retrySync">שליחה חוזרת</button>
+        <button type="button" class="btn btn-danger" id="logoutBtn" data-i18n="logout">התנתקות</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="nav" aria-label="ניווט ראשי">
+  <div class="nav-in">
+    <button type="button" id="navEntry" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l2.5 2.5"/><circle cx="12" cy="12" r="9"/></svg>
+      <span data-i18n="navEntry">דיווח שעות</span>
+    </button>
+    <button type="button" id="navDash">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg>
+      <span data-i18n="navDash">דשבורד</span>
+    </button>
+    <button type="button" id="navSettings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H1a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 2.6 7a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 7 2.6h.1A2 2 0 1 1 11 2.6V3a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 19.4 9V9a2 2 0 1 1 0 4h-.1"/></svg>
+      <span data-i18n="navSettings">הגדרות</span>
+    </button>
+  </div>
+</nav>
+
+<div class="toast"><div class="toast-in" id="toast"><span class="tick">✓</span><span id="toastMsg"></span></div></div>
+
+<div class="modal-bg hidden" id="modalBg">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <h2 id="modalTitle" data-i18n="editTitle">עריכת דיווח</h2>
+      <button type="button" class="modal-close" id="modalClose" aria-label="סגירה">✕</button>
+    </div>
+    <div id="editForm"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary" id="updateBtn" data-i18n="update">עדכון</button>
+      <button type="button" class="btn btn-danger" id="deleteBtn" data-i18n="delete">מחיקה</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   HourLedger · hours tracking for law offices
+   Single file, no backend. Records live in localStorage and are
+   mirrored to Google Sheets through a Make webhook (create /
+   update / delete). Failed sends are queued and retried.
+   ============================================================ */
+
+const APP_VERSION = "3.0";
+const DEFAULT_WEBHOOK = "https://hook.eu1.make.com/3f461zbp81thyc76u95jzfs3yn6i5p1r";
+const SIGNUP_CODE = "WAIVES-2026";
+const LOGO_SRC = "data:image/png;base64,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";
+
+/* ---------- Tenants ---------- */
+const DEFAULT_CATEGORIES = [
+  { id:"phone",      he:"שיחת טלפון",         en:"Phone call" },
+  { id:"hearing",    he:"דיון בבית משפט",      en:"Court hearing" },
+  { id:"mediation",  he:"גישור",              en:"Mediation" },
+  { id:"arbitration",he:"פישור/בוררות",        en:"Conciliation / Arbitration" },
+  { id:"review",     he:"עיון במסמכים",        en:"Document review" },
+  { id:"drafting",   he:"כתיבה/עריכת מסמכים",  en:"Drafting / editing documents" },
+  { id:"meeting",    he:"פגישה",              en:"Meeting" },
+  { id:"consult",    he:"פגישת ייעוץ",         en:"Consultation meeting" },
+  { id:"notary",     he:"פעולה נוטריונית",     en:"Notarial act" },
+  { id:"other",      he:"אחר",                en:"Other" }
+];
+
+const ORGS = {
+  weinberg:{
+    he:'משרד עו"ד אורן וינברג',
+    en:"Oren Weinberg Law Office",
+    webhook: DEFAULT_WEBHOOK,
+    clients: [],
+    categories: DEFAULT_CATEGORIES
+  },
+  demo:{
+    he:"משרד לדוגמה",
+    en:"Demo Law Office",
+    webhook:"",
+    clients: [],
+    categories: DEFAULT_CATEGORIES
+  }
+};
+
+/* ---------- Users ----------
+   hash = SHA-256 of  email(lowercase) + ":" + password
+   To add a user: open the app, run in the browser console
+   hourLedgerHash("someone@firm.co.il", "their-password")
+   and paste the result here.
+--------------------------------------------------------- */
+const USERS = [
+  { email:"office@law-weinberg.com", org:"weinberg", hash:"a4a19a722b2bfa74f1a5323cd4dc8653ac423ec7182e564b49905c48aea7392a" },
+  { email:"galli@waives.co.il",      org:"weinberg", hash:"65562440d12eeb523b955173514bbb8fdae93dc828848ddaf19ac6ad957dd67e" },
+  { email:"demo@hourledger.app",     org:"demo",     hash:"1ee2df024a87a59469c3bde4d36f5b8cda7ebcc315c7c8624613df5805616cfc" }
+];
+
+/* ---------- i18n ---------- */
+const I18N = {
+  he:{
+    loginTag:"ניהול שעות למשרדי עורכי דין",
+    fEmail:"אימייל", fPass:"סיסמה", login:"כניסה",
+    loginNote:"הכניסה נדרשת פעם אחת — המכשיר יזכור אותך",
+    errLogin:"אימייל או סיסמה שגויים", errFields:"יש למלא את כל השדות",
+    toSignup:"משרד חדש? פתיחת חשבון", toLogin:"כבר יש חשבון? כניסה",
+    fFirm:"שם המשרד", fPassNew:"סיסמה חדשה", fPass2:"אימות סיסמה", fCode:"קוד הרשמה",
+    signup:"פתיחת חשבון", signupNote:"אחרי פתיחת החשבון מזינים את רשימת הלקוחות במסך ההגדרות",
+    errEmail:"כתובת אימייל לא תקינה", errCode:"קוד הרשמה שגוי",
+    errShortPass:"הסיסמה חייבת להיות באורך 6 תווים לפחות", errMatch:"הסיסמאות אינן זהות",
+    errTaken:"כבר קיים חשבון עם האימייל הזה", welcome:"החשבון נפתח — אפשר להזין לקוחות",
+    clientsAdded:"נוספו לקוחות:", skippedDupes:"דולגו כפילויות:",
+    noClientsYet:"עוד לא הוזנו לקוחות — אפשר להדביק כמה שמות יחד",
+    errCrypto:"יש לפתוח את האפליקציה בכתובת https",
+    entryTitle:"דיווח שעות", entrySub:"מילוי מהיר של שעות חיוב ללקוח",
+    todayTitle:"הדיווחים האחרונים",
+    dashTitle:"דשבורד חיובי שעות", dashSub:"חיתוך לפי לקוח או לפי תאריך",
+    navEntry:"דיווח שעות", navDash:"דשבורד", navSettings:"הגדרות",
+    fDate:"תאריך דיווח", fClient:"שם הלקוח", fCats:"עבור מה לחייב",
+    fCatsHint:"ניתן לבחור יותר מקטגוריה אחת", fHours:"מספר שעות",
+    fHoursHint:"ברבעי שעה", fNotes:"הערות", hoursWord:"שעות",
+    fLines:"שעות לכל חיוב", fLinesHint:"שורה נפרדת בגיליון לכל חיוב",
+    linesEmpty:"יש לבחור קטגוריה כדי להזין שעות", total:'סה"כ',
+    errLineHours:"יש להזין שעות לכל קטגוריה שנבחרה",
+    savedN:"נשמרו · שורות:",
+    phClient:"התחילו להקליד שם לקוח…", phNotes:"פירוט נוסף (לא חובה)",
+    save:"שמירת דיווח", update:"עדכון", delete:"מחיקה", editTitle:"עריכת דיווח",
+    addNew:"הוספת לקוח חדש:", existsNote:"הלקוח כבר קיים ברשימה",
+    similarNote:"קיים לקוח בשם דומה:", noMatch:"לא נמצאו לקוחות תואמים",
+    errDate:"יש לבחור תאריך", errClient:"יש לבחור לקוח", errCats:"יש לבחור לפחות קטגוריה אחת",
+    errHours:"יש להזין מספר שעות (ברבעי שעה)",
+    saved:"הדיווח נשמר", updated:"הדיווח עודכן", deleted:"הדיווח נמחק",
+    confirmDelete:"למחוק את הדיווח?",
+    byClient:"לפי לקוח", byDate:"לפי תאריך", monthly:"חודשי", quarterly:"רבעוני",
+    totalHours:"סך שעות", totalEntries:"דיווחים", searchPh:"חיפוש לקוח…",
+    export:"ייצוא CSV", noData:"אין דיווחים להצגה", entries:"דיווחים", entry:"דיווח",
+    edit:"עריכה", hoursShort:"ש׳",
+    clientsTitle:"רשימת לקוחות", clientsSub:"הוספה והסרה של לקוחות. אפשר להדביק כמה שמות יחד, מופרדים בפסיק או בשורות",
+    catsTitle:"קטגוריות חיוב", catsSub:'הוספה והסרה של הערכים בשדה "עבור מה לחייב"',
+    phNewClient:"שם לקוח, או כמה מופרדים בפסיק", phNewCat:"קטגוריה חדשה", add:"הוספה",
+    errEmpty:"יש להזין ערך", errExists:"הערך כבר קיים ברשימה",
+    clientAdded:"הלקוח נוסף", catAdded:"הקטגוריה נוספה", removed:"הוסר מהרשימה",
+    confirmRemoveClient:"להסיר את הלקוח מהרשימה? דיווחים קיימים יישארו.",
+    confirmRemoveCat:"להסיר את הקטגוריה? דיווחים קיימים יישארו.",
+    inUse:"בשימוש",
+    accountTitle:"חשבון וסנכרון", kUser:"משתמש", kOrg:"משרד",
+    kSync:"סנכרון לגוגל שיטס", kPending:"ממתין לשליחה",
+    syncOn:"פעיל", syncOff:"לא מוגדר", retrySync:"שליחה חוזרת", logout:"התנתקות",
+    pending:"ממתין לסנכרון", sent:"נשלח לסנכרון", allSent:"הכול סונכרן",
+    months:["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"],
+    quarter:"רבעון",
+    csv:{date:"תאריך",client:"לקוח",cats:"קטגוריות",hours:"שעות",notes:"הערות"}
+  },
+  en:{
+    loginTag:"Hours tracking for law offices",
+    fEmail:"Email", fPass:"Password", login:"Sign in",
+    loginNote:"Sign in once — this device will remember you",
+    errLogin:"Wrong email or password", errFields:"Fill in every field",
+    toSignup:"New office? Create an account", toLogin:"Already have an account? Sign in",
+    fFirm:"Office name", fPassNew:"New password", fPass2:"Confirm password", fCode:"Signup code",
+    signup:"Create account", signupNote:"After signing up, add your client list in Settings",
+    errEmail:"Invalid email address", errCode:"Wrong signup code",
+    errShortPass:"Password must be at least 6 characters", errMatch:"Passwords do not match",
+    errTaken:"An account with this email already exists", welcome:"Account created — add your clients",
+    clientsAdded:"Clients added:", skippedDupes:"Duplicates skipped:",
+    noClientsYet:"No clients yet — paste several names at once",
+    errCrypto:"Open the app over https",
+    entryTitle:"Time entry", entrySub:"Log billable hours for a client",
+    todayTitle:"Recent entries",
+    dashTitle:"Hours dashboard", dashSub:"Break down by client or by date",
+    navEntry:"Time entry", navDash:"Dashboard", navSettings:"Settings",
+    fDate:"Entry date", fClient:"Client name", fCats:"Billable activity",
+    fCatsHint:"More than one may be selected", fHours:"Hours",
+    fHoursHint:"Quarter-hour steps", fNotes:"Notes", hoursWord:"hours",
+    fLines:"Hours per activity", fLinesHint:"a separate sheet row per activity",
+    linesEmpty:"Select an activity to enter hours", total:"Total",
+    errLineHours:"Enter hours for every selected activity",
+    savedN:"Saved · rows:",
+    phClient:"Start typing a client name…", phNotes:"Additional detail (optional)",
+    save:"Save entry", update:"Update", delete:"Delete", editTitle:"Edit entry",
+    addNew:"Add new client:", existsNote:"This client already exists",
+    similarNote:"A similar client exists:", noMatch:"No matching clients",
+    errDate:"Please choose a date", errClient:"Please choose a client", errCats:"Select at least one activity",
+    errHours:"Enter hours in quarter-hour steps",
+    saved:"Entry saved", updated:"Entry updated", deleted:"Entry deleted",
+    confirmDelete:"Delete this entry?",
+    byClient:"By client", byDate:"By date", monthly:"Monthly", quarterly:"Quarterly",
+    totalHours:"Total hours", totalEntries:"Entries", searchPh:"Search client…",
+    export:"Export CSV", noData:"No entries to display", entries:"entries", entry:"entry",
+    edit:"Edit", hoursShort:"h",
+    clientsTitle:"Client list", clientsSub:"Add or remove clients. You can paste several at once",
+    catsTitle:"Billable activities", catsSub:"Add or remove values in the activity field",
+    phNewClient:"Client name, or several separated by commas", phNewCat:"New activity", add:"Add",
+    errEmpty:"Enter a value", errExists:"This value already exists",
+    clientAdded:"Client added", catAdded:"Activity added", removed:"Removed from list",
+    confirmRemoveClient:"Remove this client? Existing entries are kept.",
+    confirmRemoveCat:"Remove this activity? Existing entries are kept.",
+    inUse:"in use",
+    accountTitle:"Account & sync", kUser:"User", kOrg:"Office",
+    kSync:"Google Sheets sync", kPending:"Waiting to send",
+    syncOn:"Active", syncOff:"Not configured", retrySync:"Retry sync", logout:"Sign out",
+    pending:"waiting to sync", sent:"Synced", allSent:"Everything synced",
+    months:["January","February","March","April","May","June","July","August","September","October","November","December"],
+    quarter:"Q",
+    csv:{date:"Date",client:"Client",cats:"Activities",hours:"Hours",notes:"Notes"}
+  }
+};
+
+/* ---------- Storage ---------- */
+const KA = { accounts:"hourledger.accounts.v1", orgs:"hourledger.orgs.v1" };
+const K = {
+  lang:"moneh.lang.v2",
+  session:"moneh.session.v2",
+  rec: o => "moneh.records.v2." + o,
+  cli: o => "moneh.clients.v2." + o,
+  cat: o => "moneh.cats.v2." + o,
+  out: o => "moneh.outbox.v2." + o
+};
+function load(key, fallback){
+  try{ const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); }
+  catch(e){ return fallback; }
+}
+function store(key, val){
+  try{ localStorage.setItem(key, JSON.stringify(val)); }
+  catch(e){ console.warn("storage unavailable", e); }
+}
+
+const state = {
+  lang: load(K.lang, "he"),
+  user: null,
+  org: null,
+  records: [],
+  clients: [],
+  categories: [],
+  outbox: [],
+  view: "entry",
+  dashMode: "client",
+  period: "month",
+  search: "",
+  editingId: null,
+  openGroups: {}
+};
+const t = () => I18N[state.lang];
+const accountsList = () => load(KA.accounts, []);
+const dynOrgs = () => load(KA.orgs, {});
+function orgCfg(){
+  if(ORGS[state.org]) return ORGS[state.org];
+  const d = dynOrgs()[state.org];
+  if(d) return Object.assign({ categories: DEFAULT_CATEGORIES }, d);
+  return ORGS.demo;
+}
+function findAccount(email){
+  const e = String(email||"").toLowerCase();
+  return USERS.find(u => u.email.toLowerCase() === e) || accountsList().find(u => u.email.toLowerCase() === e) || null;
+}
+
+/* ---------- Helpers ---------- */
+const $ = (sel, root) => (root || document).querySelector(sel);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s||"").toLowerCase().replace(/["'״׳`]/g,"").replace(/[\s\-–_]+/g," ").trim();
+const todayISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const fmtHours = h => (Math.round(h*100)/100).toString();
+function hhmm(h){ const total = Math.round(h*60); return Math.floor(total/60) + ":" + String(total%60).padStart(2,"0"); }
+function fmtDate(iso){
+  if(!iso) return "";
+  const p = iso.split("-");
+  return state.lang === "he" ? `${+p[2]}.${+p[1]}.${p[0]}` : `${+p[1]}/${+p[2]}/${p[0]}`;
+}
+function catLabel(id){
+  const c = state.categories.find(x => x.id === id);
+  return c ? (c[state.lang] || c.he || c.en || id) : id;
+}
+function catLabelHe(id){
+  const c = state.categories.find(x => x.id === id);
+  return c ? (c.he || c.en || id) : id;
+}
+function lev(a,b){
+  if(a === b) return 0;
+  const m = a.length, n = b.length;
+  if(!m || !n) return Math.max(m,n);
+  let prev = Array.from({length:n+1}, (_,i) => i);
+  for(let i=1;i<=m;i++){
+    const cur = [i];
+    for(let j=1;j<=n;j++) cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1] + (a[i-1]===b[j-1]?0:1));
+    prev = cur;
+  }
+  return prev[n];
+}
+
+/* ============================================================
+   Auth
+   ============================================================ */
+async function sha256(text){
+  if(!(window.crypto && window.crypto.subtle)) return null;
+  const buf = await window.crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+}
+window.hourLedgerHash = async (email, pass) => await sha256(String(email).toLowerCase() + ":" + pass);
+
+async function doLogin(){
+  const email = $("#loginEmail").value.trim().toLowerCase();
+  const pass  = $("#loginPass").value;
+  const errEl = $("#loginErr");
+  errEl.textContent = "";
+  if(!email || !pass){ errEl.textContent = t().errFields; return; }
+  const hash = await sha256(email + ":" + pass);
+  if(hash === null){ errEl.textContent = t().errCrypto; return; }
+  const found = findAccount(email);
+  const user = found && found.hash === hash ? found : null;
+  if(!user){
+    errEl.textContent = t().errLogin;
+    $("#loginPass").value = "";
+    $("#loginPass").focus();
+    return;
+  }
+  store(K.session, { email:user.email, org:user.org, at:new Date().toISOString() });
+  startSession(user.email, user.org);
+}
+
+function showSignup(on){
+  $("#loginPanel").classList.toggle("hidden", on);
+  $("#signupPanel").classList.toggle("hidden", !on);
+  $((on ? "#suFirm" : "#loginEmail")).focus();
+}
+
+async function doSignup(){
+  const firm  = $("#suFirm").value.trim();
+  const email = $("#suEmail").value.trim().toLowerCase();
+  const pass  = $("#suPass").value;
+  const pass2 = $("#suPass2").value;
+  const code  = $("#suCode").value.trim();
+  const err   = $("#signupErr");
+  err.textContent = "";
+  if(!firm || !email || !pass || !code){ err.textContent = t().errFields; return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent = t().errEmail; return; }
+  if(code.toUpperCase() !== SIGNUP_CODE.toUpperCase()){ err.textContent = t().errCode; return; }
+  if(pass.length < 6){ err.textContent = t().errShortPass; return; }
+  if(pass !== pass2){ err.textContent = t().errMatch; return; }
+  if(findAccount(email)){ err.textContent = t().errTaken; return; }
+  const hash = await sha256(email + ":" + pass);
+  if(hash === null){ err.textContent = t().errCrypto; return; }
+
+  const org = "f_" + uid();
+  const orgs = dynOrgs();
+  orgs[org] = { he: firm, en: firm, webhook: DEFAULT_WEBHOOK, clients: [] };
+  store(KA.orgs, orgs);
+  const accs = accountsList();
+  accs.push({ email, hash, org });
+  store(KA.accounts, accs);
+  store(K.session, { email, org, at:new Date().toISOString() });
+  startSession(email, org);
+  sendEvent({ action:"signup", user:email, org, orgName:firm });
+  toast(t().welcome);
+  setView("settings");
+}
+
+function startSession(email, org){
+  state.user = email;
+  state.org = org;
+  const cfg = orgCfg();
+  state.records = migrateRecords(load(K.rec(org), []));
+  state.clients = load(K.cli(org), null) || cfg.clients.slice();
+  state.categories = load(K.cat(org), null) || cfg.categories.map(c => Object.assign({}, c));
+  state.outbox = load(K.out(org), []);
+  saveOrgData();
+  $("#loginView").classList.add("hidden");
+  $("#appView").classList.remove("hidden");
+  document.body.classList.add("authed");
+  $("#loginPass").value = "";
+  applyLang();
+  setView("entry");
+  flushOutbox();
+}
+
+function logout(){
+  try{ localStorage.removeItem(K.session); }catch(e){}
+  state.user = null; state.org = null;
+  state.records = []; state.clients = []; state.categories = []; state.outbox = [];
+  document.body.classList.remove("authed");
+  $("#appView").classList.add("hidden");
+  $("#loginView").classList.remove("hidden");
+  $("#loginEmail").focus();
+}
+
+function saveOrgData(){
+  if(!state.org) return;
+  store(K.rec(state.org), state.records);
+  store(K.cli(state.org), state.clients);
+  store(K.cat(state.org), state.categories);
+  store(K.out(state.org), state.outbox);
+}
+
+/* ============================================================
+   Sync — every create / update / delete goes to Make → Sheets
+   ============================================================ */
+function payloadFor(rec, action){
+  return {
+    action,
+    id: rec.id,
+    date: rec.date,
+    groupId: rec.groupId || rec.id,
+    client: rec.client,
+    category: catLabelHe(rec.category),
+    categoryId: rec.category,
+    hours: rec.hours,
+    notes: rec.notes || "",
+    user: state.user || "",
+    org: state.org || "",
+    orgName: orgCfg().he,
+    source: "hourledger",
+    appVersion: APP_VERSION,
+    timestamp: new Date().toISOString()
+  };
+}
+function queue(rec, action){
+  const url = orgCfg().webhook;
+  if(!url) return;
+  state.outbox.push(payloadFor(rec, action));
+  store(K.out(state.org), state.outbox);
+  updateSyncUI();
+  flushOutbox();
+}
+function sendEvent(extra){
+  const url = orgCfg().webhook;
+  if(!url) return;
+  const body = JSON.stringify(Object.assign({
+    source:"hourledger", appVersion: APP_VERSION, timestamp:new Date().toISOString()
+  }, extra));
+  const send = ct => fetch(url, { method:"POST", headers:{"Content-Type":ct}, body });
+  send("application/json").catch(() => send("text/plain;charset=UTF-8").catch(() => {}));
+}
+let flushing = false;
+async function flushOutbox(){
+  const url = orgCfg().webhook;
+  if(flushing || !url || !state.outbox.length) return;
+  flushing = true;
+  while(state.outbox.length){
+    const item = state.outbox[0];
+    let ok = false;
+    const body = JSON.stringify(item);
+    try{
+      const res = await fetch(url, { method:"POST", headers:{"Content-Type":"application/json"}, body });
+      ok = res.ok;
+    }catch(e){
+      try{
+        const res2 = await fetch(url, { method:"POST", headers:{"Content-Type":"text/plain;charset=UTF-8"}, body });
+        ok = res2.ok;
+      }catch(e2){ ok = false; }
+    }
+    if(!ok) break;
+    state.outbox.shift();
+    store(K.out(state.org), state.outbox);
+    updateSyncUI();
+  }
+  flushing = false;
+  updateSyncUI();
+}
+function updateSyncUI(){
+  const n = state.outbox.length;
+  const pill = $("#syncPill");
+  if(pill){
+    pill.classList.toggle("hidden", n === 0);
+    pill.textContent = n ? `${n} ${t().pending}` : "";
+  }
+  const kv = $("#kvPending");
+  if(kv) kv.textContent = String(n);
+}
+window.addEventListener("online", flushOutbox);
+
+/* ============================================================
+   Entry form component
+   ============================================================ */
+function formHTML(p, mode){
+  const cats = state.categories.map((c,i) =>
+    `<button type="button" class="chip" role="${mode==="single"?"radio":"checkbox"}" aria-checked="false" aria-pressed="false" data-cat="${esc(c.id)}" tabindex="${i===0?0:-1}">${esc(c[state.lang] || c.he || c.en)}</button>`
+  ).join("");
+  const linesLabel = mode === "single" ? t().fHours : t().fLines;
+  const linesHint  = mode === "single" ? t().fHoursHint : t().fLinesHint;
+  return `
+  <div class="field">
+    <label for="${p}Date">${esc(t().fDate)}</label>
+    <input type="date" id="${p}Date" class="control" data-f="date">
+    <span class="err" data-e="date"></span>
+  </div>
+
+  <div class="field combo">
+    <label for="${p}Client">${esc(t().fClient)}</label>
+    <input type="text" id="${p}Client" class="control" data-f="client" autocomplete="off"
+           role="combobox" aria-expanded="false" aria-autocomplete="list"
+           aria-controls="${p}ClientList" placeholder="${esc(t().phClient)}">
+    <div class="combo-list hidden" id="${p}ClientList" role="listbox"></div>
+    <div class="note hidden" data-note></div>
+    <span class="err" data-e="client"></span>
+  </div>
+
+  <div class="field">
+    <span class="field-label" id="${p}CatsLabel">${esc(t().fCats)}<span class="hint">${esc(mode==="single" ? "" : t().fCatsHint)}</span></span>
+    <div class="chips" role="group" aria-labelledby="${p}CatsLabel" data-chips>${cats}</div>
+    <span class="err" data-e="cats"></span>
+  </div>
+
+  <div class="field">
+    <span class="field-label">${esc(linesLabel)}<span class="hint">${esc(linesHint)}</span></span>
+    <div class="lines" data-lines></div>
+    <div class="total hidden" data-total><span>${esc(t().total)}</span><span class="tv" data-total-v>0</span></div>
+    <span class="err" data-e="hours"></span>
+  </div>
+
+  <div class="field">
+    <label for="${p}Notes">${esc(t().fNotes)}</label>
+    <textarea id="${p}Notes" class="control" data-f="notes" placeholder="${esc(t().phNotes)}"></textarea>
+  </div>`;
+}
+
+function snapHours(v){
+  if(isNaN(v) || v <= 0) return 0;
+  return Math.min(24, Math.max(0.25, Math.round(v*4)/4));
+}
+
+function createForm(root, prefix, mode){
+  mode = mode || "multi";
+  root.innerHTML = formHTML(prefix, mode);
+
+  const dateEl  = $('[data-f="date"]', root);
+  const cliEl   = $('[data-f="client"]', root);
+  const listEl  = $('.combo-list', root);
+  const noteEl  = $('[data-note]', root);
+  const chipsEl = $('[data-chips]', root);
+  const linesEl = $('[data-lines]', root);
+  const totalEl = $('[data-total]', root);
+  const totalV  = $('[data-total-v]', root);
+  const notesEl = $('[data-f="notes"]', root);
+
+  let active = -1, options = [];
+  const hoursMap = {};
+
+  /* ---- client combobox ---- */
+  function openList(){
+    const q = norm(cliEl.value);
+    const list = state.clients;
+    const matches = q ? list.filter(c => norm(c).includes(q)) : list.slice();
+    options = matches.map(c => ({type:"existing", value:c}));
+    const exact = list.some(c => norm(c) === q);
+    if(q && !exact) options.push({type:"new", value:cliEl.value.trim()});
+    listEl.innerHTML = options.length
+      ? options.map((o,i) => o.type === "new"
+          ? `<div class="combo-opt new" role="option" aria-selected="false" data-i="${i}"><span class="plus">+</span>${esc(t().addNew)} ${esc(o.value)}</div>`
+          : `<div class="combo-opt" role="option" aria-selected="false" data-i="${i}">${esc(o.value)}</div>`).join("")
+      : `<div class="combo-empty">${esc(t().noMatch)}</div>`;
+    listEl.classList.remove("hidden");
+    cliEl.setAttribute("aria-expanded","true");
+    active = -1;
+  }
+  function closeList(){
+    listEl.classList.add("hidden");
+    cliEl.setAttribute("aria-expanded","false");
+    active = -1;
+  }
+  function setActive(i){
+    const opts = listEl.querySelectorAll(".combo-opt");
+    opts.forEach(o => { o.classList.remove("active"); o.setAttribute("aria-selected","false"); });
+    if(i >= 0 && opts[i]){
+      opts[i].classList.add("active");
+      opts[i].setAttribute("aria-selected","true");
+      opts[i].scrollIntoView({block:"nearest"});
+    }
+    active = i;
+  }
+  function pick(i){
+    if(!options[i]) return;
+    cliEl.value = options[i].value;
+    closeList();
+    checkClient();
+    cliEl.classList.remove("invalid");
+    $('[data-e="client"]', root).textContent = "";
+  }
+  function checkClient(){
+    const raw = cliEl.value.trim();
+    noteEl.classList.add("hidden");
+    noteEl.innerHTML = "";
+    if(!raw) return;
+    const q = norm(raw);
+    const list = state.clients;
+    if(list.some(c => norm(c) === q)){
+      noteEl.className = "note info";
+      noteEl.textContent = "✓ " + t().existsNote;
+      noteEl.classList.remove("hidden");
+      return;
+    }
+    const near = list.filter(c => {
+      const n = norm(c);
+      return n.includes(q) || q.includes(n) || lev(n,q) <= 2;
+    }).slice(0,3);
+    if(near.length){
+      noteEl.className = "note warn";
+      noteEl.innerHTML = esc(t().similarNote) + " " +
+        near.map(c => `<button type="button" data-pick="${esc(c)}">${esc(c)}</button>`).join(" ");
+      noteEl.classList.remove("hidden");
+    }
+  }
+
+  cliEl.addEventListener("input", openList);
+  cliEl.addEventListener("focus", openList);
+  cliEl.addEventListener("click", openList);
+  cliEl.addEventListener("keydown", e => {
+    if(e.key === "ArrowDown"){ e.preventDefault(); if(listEl.classList.contains("hidden")) openList(); setActive(Math.min(active+1, options.length-1)); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); setActive(Math.max(active-1, 0)); }
+    else if(e.key === "Enter"){ if(active >= 0){ e.preventDefault(); pick(active); } else { closeList(); checkClient(); } }
+    else if(e.key === "Escape"){ closeList(); }
+    else if(e.key === "Tab"){ if(active >= 0) pick(active); else { closeList(); checkClient(); } }
+  });
+  cliEl.addEventListener("blur", () => setTimeout(() => { closeList(); checkClient(); }, 140));
+  listEl.addEventListener("mousedown", e => {
+    const opt = e.target.closest(".combo-opt");
+    if(opt){ e.preventDefault(); pick(+opt.dataset.i); }
+  });
+  noteEl.addEventListener("click", e => {
+    const b = e.target.closest("[data-pick]");
+    if(b){ cliEl.value = b.dataset.pick; checkClient(); }
+  });
+
+  /* ---- categories + one hours row per selected category ---- */
+  function selectedCats(){
+    return Array.from(chipsEl.querySelectorAll('.chip[aria-pressed="true"]')).map(c => c.dataset.cat);
+  }
+  function renderLines(){
+    const sel = selectedCats();
+    Object.keys(hoursMap).forEach(k => { if(!sel.includes(k)) delete hoursMap[k]; });
+    linesEl.innerHTML = sel.length
+      ? sel.map(id => `<div class="line" data-line="${esc(id)}">
+          <span class="lcat">${esc(catLabel(id))}</span>
+          <button type="button" class="step" data-lstep="-0.25" data-for="${esc(id)}" aria-label="-0.25" tabindex="-1">−</button>
+          <input type="number" class="control lh" data-lh="${esc(id)}" min="0.25" max="24" step="0.25"
+                 inputmode="decimal" placeholder="0.00" aria-label="${esc(catLabel(id))}" value="${hoursMap[id] ? fmtHours(hoursMap[id]) : ""}">
+          <button type="button" class="step" data-lstep="0.25" data-for="${esc(id)}" aria-label="+0.25" tabindex="-1">+</button>
+        </div>`).join("")
+      : `<div class="lines-empty">${esc(t().linesEmpty)}</div>`;
+    updateTotal();
+  }
+  function updateTotal(){
+    const sel = selectedCats();
+    const sum = sel.reduce((s,id) => s + (hoursMap[id] || 0), 0);
+    totalEl.classList.toggle("hidden", sel.length < 2 || !sum);
+    totalV.textContent = sum ? `${fmtHours(sum)} ${t().hoursWord} · ${hhmm(sum)}` : "0";
+  }
+  chipsEl.addEventListener("click", e => {
+    const chip = e.target.closest(".chip");
+    if(!chip) return;
+    const on = chip.getAttribute("aria-pressed") === "true";
+    if(mode === "single"){
+      chipsEl.querySelectorAll(".chip").forEach(c => { c.setAttribute("aria-pressed","false"); c.setAttribute("aria-checked","false"); });
+      if(!on){ chip.setAttribute("aria-pressed","true"); chip.setAttribute("aria-checked","true"); }
+    }else{
+      chip.setAttribute("aria-pressed", on ? "false" : "true");
+      chip.setAttribute("aria-checked", on ? "false" : "true");
+    }
+    $('[data-e="cats"]', root).textContent = "";
+    renderLines();
+  });
+  chipsEl.addEventListener("keydown", e => {
+    const chips = Array.from(chipsEl.querySelectorAll(".chip"));
+    const i = chips.indexOf(document.activeElement);
+    if(i < 0) return;
+    const rtl = document.documentElement.dir === "rtl";
+    let next = null;
+    if(e.key === "ArrowRight") next = rtl ? i-1 : i+1;
+    else if(e.key === "ArrowLeft") next = rtl ? i+1 : i-1;
+    else if(e.key === "ArrowDown") next = i+1;
+    else if(e.key === "ArrowUp") next = i-1;
+    else if(e.key === " " || e.key === "Enter"){ e.preventDefault(); chips[i].click(); return; }
+    if(next === null) return;
+    e.preventDefault();
+    next = Math.max(0, Math.min(chips.length-1, next));
+    chips.forEach(c => c.tabIndex = -1);
+    chips[next].tabIndex = 0;
+    chips[next].focus();
+  });
+
+  linesEl.addEventListener("click", e => {
+    const b = e.target.closest("[data-lstep]");
+    if(!b) return;
+    const id = b.dataset.for;
+    const next = snapHours((hoursMap[id] || 0) + parseFloat(b.dataset.lstep));
+    hoursMap[id] = next;
+    const input = linesEl.querySelector(`[data-lh="${CSS.escape(id)}"]`);
+    if(input) input.value = next ? fmtHours(next) : "";
+    $('[data-e="hours"]', root).textContent = "";
+    updateTotal();
+  });
+  linesEl.addEventListener("input", e => {
+    const input = e.target.closest("[data-lh]");
+    if(!input) return;
+    const v = parseFloat(input.value);
+    hoursMap[input.dataset.lh] = isNaN(v) || v <= 0 ? 0 : v;
+    input.classList.remove("invalid");
+    $('[data-e="hours"]', root).textContent = "";
+    updateTotal();
+  });
+  linesEl.addEventListener("blur", e => {
+    const input = e.target.closest("[data-lh]");
+    if(!input) return;
+    const v = snapHours(parseFloat(input.value));
+    hoursMap[input.dataset.lh] = v;
+    input.value = v ? fmtHours(v) : "";
+    updateTotal();
+  }, true);
+
+  const api = {
+    root,
+    setValue(v){
+      dateEl.value = v.date || todayISO();
+      cliEl.value = v.client || "";
+      notesEl.value = v.notes || "";
+      Object.keys(hoursMap).forEach(k => delete hoursMap[k]);
+      const lines = v.lines || [];
+      const ids = lines.map(l => l.category);
+      lines.forEach(l => { if(l.hours) hoursMap[l.category] = l.hours; });
+      chipsEl.querySelectorAll(".chip").forEach(c => {
+        const on = ids.includes(c.dataset.cat);
+        c.setAttribute("aria-pressed", on ? "true" : "false");
+        c.setAttribute("aria-checked", on ? "true" : "false");
+      });
+      renderLines();
+      checkClient();
+    },
+    getValue(){
+      return {
+        date: dateEl.value,
+        client: cliEl.value.trim(),
+        notes: notesEl.value.trim(),
+        lines: selectedCats().map(id => ({ category:id, hours: snapHours(hoursMap[id]) }))
+      };
+    },
+    validate(){
+      const v = api.getValue();
+      let ok = true;
+      root.querySelectorAll(".err").forEach(e => e.textContent = "");
+      root.querySelectorAll(".invalid").forEach(e => e.classList.remove("invalid"));
+      const fail = (key, el, msg) => { $(`[data-e="${key}"]`, root).textContent = msg; if(el) el.classList.add("invalid"); ok = false; };
+      if(!v.date) fail("date", dateEl, t().errDate);
+      if(!v.client) fail("client", cliEl, t().errClient);
+      if(!v.lines.length) fail("cats", null, t().errCats);
+      const missing = v.lines.filter(l => !l.hours);
+      if(v.lines.length && missing.length){
+        fail("hours", null, t().errLineHours);
+        missing.forEach(l => {
+          const input = linesEl.querySelector(`[data-lh="${CSS.escape(l.category)}"]`);
+          if(input) input.classList.add("invalid");
+        });
+      }
+      if(!ok){
+        const first = root.querySelector(".invalid") || root.querySelector('[data-chips] .chip');
+        if(first) first.focus();
+      }
+      return ok ? v : null;
+    },
+    reset(){
+      api.setValue({ date: todayISO(), client:"", notes:"", lines:[] });
+      root.querySelectorAll(".err").forEach(e => e.textContent = "");
+      noteEl.classList.add("hidden");
+      cliEl.focus();
+    }
+  };
+  api.setValue({ date: todayISO(), lines:[] });
+  return api;
+}
+
+/* ============================================================
+   Records
+   ============================================================ */
+function migrateRecords(list){
+  const out = [];
+  (list || []).forEach(r => {
+    if(r && r.categories && !r.category){
+      const cats = r.categories.length ? r.categories : ["other"];
+      const each = Math.max(0.25, Math.round((r.hours / cats.length) * 4) / 4);
+      cats.forEach((c,i) => out.push({
+        id: i === 0 ? r.id : r.id + "-" + i,
+        groupId: r.id,
+        date: r.date, client: r.client, category: c, hours: each,
+        notes: r.notes || "", createdAt: r.createdAt || new Date().toISOString()
+      }));
+    }else if(r && r.category){
+      out.push(r);
+    }
+  });
+  return out;
+}
+function rememberClient(name){
+  const q = norm(name);
+  if(!state.clients.some(c => norm(c) === q)) state.clients.push(name);
+}
+function saveEntry(){
+  const v = entryForm.validate();
+  if(!v) return;
+  rememberClient(v.client);
+  const groupId = uid();
+  const created = new Date().toISOString();
+  const rows = v.lines.map(l => ({
+    id: uid(),
+    groupId,
+    date: v.date,
+    client: v.client,
+    category: l.category,
+    hours: l.hours,
+    notes: v.notes,
+    createdAt: created
+  }));
+  rows.forEach(r => state.records.push(r));
+  saveOrgData();
+  rows.forEach(r => queue(r, "create"));
+  toast(rows.length > 1 ? `${t().savedN} ${rows.length}` : t().saved);
+  entryForm.reset();
+  renderRecent();
+  renderSettings();
+}
+function updateEntry(){
+  const v = editForm.validate();
+  if(!v) return;
+  rememberClient(v.client);
+  const i = state.records.findIndex(r => r.id === state.editingId);
+  if(i > -1){
+    state.records[i] = Object.assign({}, state.records[i], {
+      date: v.date, client: v.client, notes: v.notes,
+      category: v.lines[0].category, hours: v.lines[0].hours,
+      updatedAt: new Date().toISOString()
+    });
+    saveOrgData();
+    queue(state.records[i], "update");
+  }
+  closeModal();
+  toast(t().updated);
+  renderAll();
+}
+function deleteEntry(){
+  if(!confirm(t().confirmDelete)) return;
+  const rec = state.records.find(r => r.id === state.editingId);
+  state.records = state.records.filter(r => r.id !== state.editingId);
+  saveOrgData();
+  if(rec) queue(rec, "delete");
+  closeModal();
+  toast(t().deleted);
+  renderAll();
+}
+
+/* ============================================================
+   Rendering
+   ============================================================ */
+function rowHTML(r, showClient){
+  const cats = `<span class="tag">${esc(catLabel(r.category))}</span>`;
+  return `<div class="row">
+    <div class="rmain">
+      <div class="rtop">
+        <span class="rdate">${esc(fmtDate(r.date))}</span>
+        ${showClient ? `<span class="rclient">${esc(r.client)}</span>` : ""}
+      </div>
+      <div class="rcats">${cats}</div>
+      ${r.notes ? `<div class="rnotes">${esc(r.notes)}</div>` : ""}
+    </div>
+    <div class="rhours">${fmtHours(r.hours)}</div>
+    <button type="button" class="redit" data-edit="${r.id}">${esc(t().edit)}</button>
+  </div>`;
+}
+function renderRecent(){
+  const recs = state.records.slice()
+    .sort((a,b) => (b.date + (b.createdAt||"")).localeCompare(a.date + (a.createdAt||"")))
+    .slice(0,6);
+  $("#recentList").innerHTML = recs.length ? recs.map(r => rowHTML(r, true)).join("") : `<div class="empty">${esc(t().noData)}</div>`;
+}
+function periodKey(iso){
+  const [y,m] = iso.split("-");
+  return state.period === "month" ? `${y}-${m}` : `${y}-Q${Math.floor((+m-1)/3)+1}`;
+}
+function periodLabel(key){
+  if(state.period === "month"){
+    const [y,m] = key.split("-");
+    return `${t().months[+m-1]} ${y}`;
+  }
+  const [y,q] = key.split("-Q");
+  return state.lang === "he" ? `${t().quarter} ${q} ${y}` : `Q${q} ${y}`;
+}
+function renderDash(){
+  const q = norm(state.search);
+  let recs = state.records.slice();
+  if(q) recs = recs.filter(r => norm(r.client).includes(q));
+
+  $("#statHours").textContent = fmtHours(recs.reduce((s,r) => s + r.hours, 0));
+  $("#statCount").textContent = recs.length;
+
+  const groups = {};
+  recs.forEach(r => {
+    const key = state.dashMode === "client" ? r.client : periodKey(r.date);
+    (groups[key] = groups[key] || []).push(r);
+  });
+  let keys = Object.keys(groups);
+  if(state.dashMode === "client") keys.sort((a,b) => groups[b].reduce((s,r)=>s+r.hours,0) - groups[a].reduce((s,r)=>s+r.hours,0));
+  else keys.sort().reverse();
+
+  const body = $("#dashBody");
+  if(!keys.length){ body.innerHTML = `<div class="empty">${esc(t().noData)}</div>`; return; }
+
+  body.innerHTML = keys.map(k => {
+    const rows = groups[k].slice().sort((a,b) => b.date.localeCompare(a.date));
+    const sum = rows.reduce((s,r) => s + r.hours, 0);
+    const open = !!state.openGroups[k];
+    const name = state.dashMode === "client" ? k : periodLabel(k);
+    const count = rows.length + " " + (rows.length === 1 ? t().entry : t().entries);
+    return `<div class="group">
+      <button type="button" class="group-head" data-group="${esc(k)}" aria-expanded="${open}">
+        <span class="caret">▶</span>
+        <span class="gname">${esc(name)}</span>
+        <span class="gmeta">${esc(count)}</span>
+        <span class="ghours">${fmtHours(sum)} ${esc(t().hoursShort)}</span>
+      </button>
+      <div class="rows ${open ? "" : "hidden"}">${rows.map(r => rowHTML(r, state.dashMode !== "client")).join("")}</div>
+    </div>`;
+  }).join("");
+}
+function renderSettings(){
+  const usedClients = {};
+  const usedCats = {};
+  state.records.forEach(r => {
+    usedClients[r.client] = (usedClients[r.client]||0) + 1;
+    usedCats[r.category] = (usedCats[r.category]||0) + 1;
+  });
+  $("#clientList").innerHTML = state.clients.length
+    ? state.clients.map(c => `<div class="list-item">
+        <span class="lname">${esc(c)}</span>
+        ${usedClients[c] ? `<span class="lused">${usedClients[c]} ${esc(t().inUse)}</span>` : ""}
+        <button type="button" class="lx" data-del-client="${esc(c)}" aria-label="${esc(t().delete)}">✕</button>
+      </div>`).join("")
+    : `<div class="empty">${esc(t().noClientsYet)}</div>`;
+
+  $("#catList").innerHTML = state.categories.map(c => `<div class="list-item">
+      <span class="lname">${esc(c[state.lang] || c.he || c.en)}</span>
+      ${usedCats[c.id] ? `<span class="lused">${usedCats[c.id]} ${esc(t().inUse)}</span>` : ""}
+      <button type="button" class="lx" data-del-cat="${esc(c.id)}" aria-label="${esc(t().delete)}">✕</button>
+    </div>`).join("");
+
+  $("#kvUser").textContent = state.user || "";
+  $("#kvOrg").textContent = orgCfg()[state.lang] || orgCfg().he;
+  $("#kvSync").textContent = orgCfg().webhook ? t().syncOn : t().syncOff;
+  updateSyncUI();
+}
+function renderAll(){ renderRecent(); renderDash(); renderSettings(); }
+
+/* ============================================================
+   Settings actions
+   ============================================================ */
+function addClient(){
+  const el = $("#newClient"), err = $("#clientErr");
+  const raw = el.value.trim();
+  err.textContent = "";
+  if(!raw){ err.textContent = t().errEmpty; el.focus(); return; }
+  const names = raw.split(/[\n,;\t]+/).map(x => x.trim()).filter(Boolean);
+  let added = 0, dupes = 0;
+  names.forEach(n => {
+    if(state.clients.some(c => norm(c) === norm(n))){ dupes++; return; }
+    state.clients.push(n);
+    added++;
+  });
+  if(!added){ err.textContent = t().errExists; return; }
+  saveOrgData();
+  el.value = "";
+  renderSettings();
+  rebuildForms();
+  toast(added > 1 ? `${t().clientsAdded} ${added}` : t().clientAdded);
+  if(dupes) err.textContent = `${t().skippedDupes} ${dupes}`;
+}
+function removeClient(name){
+  if(!confirm(t().confirmRemoveClient)) return;
+  state.clients = state.clients.filter(c => c !== name);
+  saveOrgData();
+  renderSettings();
+  toast(t().removed);
+}
+function addCat(){
+  const el = $("#newCat"), err = $("#catErr");
+  const label = el.value.trim();
+  err.textContent = "";
+  if(!label){ err.textContent = t().errEmpty; el.focus(); return; }
+  if(state.categories.some(c => norm(c.he) === norm(label) || norm(c.en) === norm(label))){ err.textContent = t().errExists; return; }
+  state.categories.push({ id:"c_" + uid(), he:label, en:label });
+  saveOrgData();
+  el.value = "";
+  renderSettings();
+  rebuildForms();
+  toast(t().catAdded);
+}
+function removeCat(id){
+  if(!confirm(t().confirmRemoveCat)) return;
+  state.categories = state.categories.filter(c => c.id !== id);
+  saveOrgData();
+  renderSettings();
+  rebuildForms();
+  toast(t().removed);
+}
+function rebuildForms(){
+  const keep = entryForm ? entryForm.getValue() : null;
+  entryForm = createForm($("#entryForm"), "e", "multi");
+  if(keep) entryForm.setValue(keep);
+}
+
+/* ============================================================
+   Language
+   ============================================================ */
+function applyLang(){
+  const L = t();
+  document.documentElement.lang = state.lang;
+  document.documentElement.dir = state.lang === "he" ? "rtl" : "ltr";
+  document.title = state.lang === "he" ? "HourLedger-Law — ניהול שעות" : "HourLedger-Law — Hours tracking";
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const k = el.dataset.i18n;
+    if(L[k] != null) el.textContent = L[k];
+  });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => {
+    const k = el.dataset.i18nPh;
+    if(L[k] != null) el.placeholder = L[k];
+  });
+  $("#langHe").setAttribute("aria-pressed", state.lang === "he");
+  $("#langEn").setAttribute("aria-pressed", state.lang === "en");
+  $("#loginEmail").placeholder = "";
+
+  if(state.user){
+    $("#orgName").textContent = orgCfg()[state.lang] || orgCfg().he;
+    rebuildForms();
+    if(state.editingId){
+      const rec = state.records.find(r => r.id === state.editingId);
+      editForm = createForm($("#editForm"), "m", "single");
+      if(rec) editForm.setValue({ date:rec.date, client:rec.client, notes:rec.notes, lines:[{category:rec.category, hours:rec.hours}] });
+    }
+    renderAll();
+  }
+}
+
+/* ============================================================
+   Navigation, modal, toast, export
+   ============================================================ */
+function setView(v){
+  state.view = v;
+  $("#viewEntry").classList.toggle("hidden", v !== "entry");
+  $("#viewDash").classList.toggle("hidden", v !== "dash");
+  $("#viewSettings").classList.toggle("hidden", v !== "settings");
+  $("#navEntry").setAttribute("aria-current", v === "entry" ? "page" : "false");
+  $("#navDash").setAttribute("aria-current", v === "dash" ? "page" : "false");
+  $("#navSettings").setAttribute("aria-current", v === "settings" ? "page" : "false");
+  if(v === "dash") renderDash();
+  if(v === "settings") renderSettings();
+  if(v === "entry") renderRecent();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function openModal(id){
+  const rec = state.records.find(r => r.id === id);
+  if(!rec) return;
+  state.editingId = id;
+  editForm = createForm($("#editForm"), "m", "single");
+  editForm.setValue({ date:rec.date, client:rec.client, notes:rec.notes, lines:[{category:rec.category, hours:rec.hours}] });
+  $("#modalBg").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => { const f = $("#editForm .control"); if(f) f.focus(); }, 50);
+}
+function closeModal(){
+  state.editingId = null;
+  $("#modalBg").classList.add("hidden");
+  document.body.style.overflow = "";
+}
+let toastTimer = null;
+function toast(msg){
+  $("#toastMsg").textContent = msg;
+  const el = $("#toast");
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
+}
+function exportCSV(){
+  const C = t().csv;
+  const q = norm(state.search);
+  const recs = state.records.filter(r => !q || norm(r.client).includes(q)).sort((a,b) => a.date.localeCompare(b.date));
+  const cell = s => `"${String(s == null ? "" : s).replace(/"/g,'""')}"`;
+  const csv = "\uFEFF" + [[C.date,C.client,C.cats,C.hours,C.notes].map(cell).join(",")]
+    .concat(recs.map(r => [fmtDate(r.date), r.client, catLabel(r.category), fmtHours(r.hours), r.notes].map(cell).join(","))).join("\r\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `hourledger-${todayISO()}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+let entryForm = null;
+let editForm = null;
+
+$("#loginBtn").addEventListener("click", doLogin);
+$("#toSignup").addEventListener("click", () => showSignup(true));
+$("#toLogin").addEventListener("click", () => showSignup(false));
+$("#signupBtn").addEventListener("click", doSignup);
+$("#suCode").addEventListener("keydown", e => { if(e.key === "Enter") doSignup(); });
+$("#loginEmail").addEventListener("keydown", e => { if(e.key === "Enter") $("#loginPass").focus(); });
+$("#loginPass").addEventListener("keydown", e => { if(e.key === "Enter") doLogin(); });
+
+$("#saveBtn").addEventListener("click", saveEntry);
+$("#updateBtn").addEventListener("click", updateEntry);
+$("#deleteBtn").addEventListener("click", deleteEntry);
+$("#modalClose").addEventListener("click", closeModal);
+$("#modalBg").addEventListener("mousedown", e => { if(e.target.id === "modalBg") closeModal(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape" && state.editingId) closeModal(); });
+
+$("#navEntry").addEventListener("click", () => setView("entry"));
+$("#navDash").addEventListener("click", () => setView("dash"));
+$("#navSettings").addEventListener("click", () => setView("settings"));
+
+$("#langHe").addEventListener("click", () => { if(state.lang !== "he"){ state.lang = "he"; store(K.lang,"he"); applyLang(); } });
+$("#langEn").addEventListener("click", () => { if(state.lang !== "en"){ state.lang = "en"; store(K.lang,"en"); applyLang(); } });
+
+$("#modeClient").addEventListener("click", () => {
+  state.dashMode = "client"; state.openGroups = {};
+  $("#modeClient").setAttribute("aria-pressed","true");
+  $("#modeDate").setAttribute("aria-pressed","false");
+  $("#periodSeg").classList.add("hidden");
+  renderDash();
+});
+$("#modeDate").addEventListener("click", () => {
+  state.dashMode = "date"; state.openGroups = {};
+  $("#modeClient").setAttribute("aria-pressed","false");
+  $("#modeDate").setAttribute("aria-pressed","true");
+  $("#periodSeg").classList.remove("hidden");
+  renderDash();
+});
+$("#periodMonth").addEventListener("click", () => {
+  state.period = "month"; state.openGroups = {};
+  $("#periodMonth").setAttribute("aria-pressed","true");
+  $("#periodQuarter").setAttribute("aria-pressed","false");
+  renderDash();
+});
+$("#periodQuarter").addEventListener("click", () => {
+  state.period = "quarter"; state.openGroups = {};
+  $("#periodMonth").setAttribute("aria-pressed","false");
+  $("#periodQuarter").setAttribute("aria-pressed","true");
+  renderDash();
+});
+
+$("#dashSearch").addEventListener("input", e => { state.search = e.target.value; renderDash(); });
+$("#exportBtn").addEventListener("click", exportCSV);
+
+$("#addClient").addEventListener("click", addClient);
+$("#newClient").addEventListener("keydown", e => { if(e.key === "Enter" && (e.ctrlKey || e.metaKey)) addClient(); });
+$("#addCat").addEventListener("click", addCat);
+$("#newCat").addEventListener("keydown", e => { if(e.key === "Enter") addCat(); });
+$("#retryBtn").addEventListener("click", () => { flushOutbox(); toast(state.outbox.length ? t().sent : t().allSent); });
+$("#logoutBtn").addEventListener("click", logout);
+
+document.addEventListener("click", e => {
+  const head = e.target.closest("[data-group]");
+  if(head){ state.openGroups[head.dataset.group] = !state.openGroups[head.dataset.group]; renderDash(); return; }
+  const ed = e.target.closest("[data-edit]");
+  if(ed){ openModal(ed.dataset.edit); return; }
+  const dc = e.target.closest("[data-del-client]");
+  if(dc){ removeClient(dc.dataset.delClient); return; }
+  const dk = e.target.closest("[data-del-cat]");
+  if(dk){ removeCat(dk.dataset.delCat); return; }
+});
+
+/* boot */
+$("#logoHead").src = LOGO_SRC;
+$("#logoLogin").src = LOGO_SRC;
+$("#favicon").href = LOGO_SRC;
+applyLang();
+const session = load(K.session, null);
+if(session && findAccount(session.email)) startSession(session.email, session.org);
+else $("#loginEmail").focus();
+</script>
+</body>
+</html>
