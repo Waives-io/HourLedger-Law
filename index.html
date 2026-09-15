@@ -221,11 +221,9 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .stats-inline .stat .v{font-size:17px;margin:0}
 .bd-row .bd{flex:none;color:var(--ink-faint);font-weight:600;font-variant-numeric:tabular-nums;font-size:12.5px}
 .lother{margin-top:6px;padding:9px 12px;font-size:14px;font-weight:500}
-.range-inputs{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:16px}
+.range-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;margin-bottom:16px}
 .range-inputs label{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:12px;font-weight:700;color:var(--ink-faint)}
 .range-inputs .control{padding:9px 10px;font-size:14px;min-width:0}
-.range-inputs .btn{padding:10px 12px;font-size:13px}
-@media (max-width:420px){ .range-inputs{grid-template-columns:1fr 1fr} .range-inputs .btn{grid-column:1/-1} }
 .breakdown{padding:8px 14px 10px;background:var(--gold-soft);border-bottom:1px solid var(--line)}
 .bd-title{font-size:11.5px;color:var(--ink-faint);font-weight:700;margin-bottom:4px}
 .bd-row{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;font-weight:700;padding:3px 0}
@@ -443,18 +441,11 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 
   <section id="viewDash" class="hidden">
     <div class="card">
-      <div class="dash-head">
-        <h1 class="card-title" data-i18n="dashTitle">דשבורד חיובי שעות</h1>
-        <div class="stats-inline">
-          <div class="stat"><span class="k" data-i18n="totalHours">סך שעות</span><span class="v" id="statHours">0</span></div>
-          <div class="stat"><span class="k" data-i18n="totalEntries">דיווחים</span><span class="v" id="statCount">0</span></div>
-        </div>
-      </div>
-      <p class="card-sub" data-i18n="dashSub">בחרו את החיתוך הרצוי</p>
+      <h1 class="card-title" data-i18n="dashTitle">דשבורד חיובי שעות</h1>
+      <p class="card-sub" data-i18n="dashSub">בחרו חיתוך ותקופה</p>
 
       <div class="seg" role="group" aria-label="mode">
         <button type="button" id="modeClient" aria-pressed="true" data-i18n="byClient">לפי לקוח</button>
-        <button type="button" id="modeDate" aria-pressed="false" data-i18n="byDate">לפי תאריך</button>
         <button type="button" id="modeCat" aria-pressed="false" data-i18n="byCategory">לפי קטגוריה</button>
       </div>
 
@@ -464,11 +455,11 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
         <button type="button" class="preset" data-preset="quarter" data-i18n="presetQuarter">הרבעון</button>
         <button type="button" class="preset" data-preset="year" data-i18n="presetYear">השנה</button>
         <button type="button" class="preset" data-preset="all" data-i18n="presetAll">הכל</button>
+        <button type="button" class="preset" id="presetCustom" data-i18n="presetCustom">טווח מותאם</button>
       </div>
-      <div class="range-inputs">
+      <div class="range-inputs hidden" id="rangeInputs">
         <label><span data-i18n="fromDate">מתאריך</span><input type="date" class="control" id="rangeFrom"></label>
         <label><span data-i18n="toDate">עד תאריך</span><input type="date" class="control" id="rangeTo"></label>
-        <button type="button" class="btn btn-ghost" id="rangeClear" data-i18n="clearRange">ניקוי</button>
       </div>
 
       <div class="toolbar">
@@ -698,7 +689,7 @@ const I18N = {
     errCrypto:"יש לפתוח את האפליקציה בכתובת https",
     entryTitle:"דיווח שעות", entrySub:"מילוי מהיר של שעות חיוב ללקוח",
     todayTitle:"הדיווחים האחרונים",
-    dashTitle:"דשבורד חיובי שעות", dashSub:"בחרו את החיתוך הרצוי",
+    dashTitle:"דשבורד חיובי שעות", dashSub:"בחרו חיתוך ותקופה",
     navEntry:"דיווח שעות", navDash:"דשבורד", navSettings:"הגדרות",
     fDate:"תאריך דיווח", fClient:"שם הלקוח", fCats:"עבור מה לחייב",
     fCatsHint:"ניתן לבחור יותר מקטגוריה אחת", fHours:"מספר שעות",
@@ -716,9 +707,9 @@ const I18N = {
     saved:"הדיווח נשמר", updated:"הדיווח עודכן", deleted:"הדיווח נמחק",
     confirmDelete:"למחוק את הדיווח?",
     byClient:"לפי לקוח", byDate:"לפי תאריך", byCategory:"לפי קטגוריה", monthly:"חודשי", quarterly:"רבעוני",
-    presetMonth:"החודש", presetPrev:"חודש שעבר", presetQuarter:"הרבעון", presetYear:"השנה", presetAll:"הכל",
+    presetMonth:"החודש", presetPrev:"חודש שעבר", presetQuarter:"הרבעון", presetYear:"השנה", presetAll:"הכל", presetCustom:"טווח מותאם",
     fromDate:"מתאריך", toDate:"עד תאריך", clearRange:"ניקוי",
-    bdByPeriod:"פירוט לפי חודש", bdByClient:"פירוט לפי לקוח", bdByClientDate:"פירוט לפי לקוח ותאריך",
+    bdByCategory:"פירוט לפי קטגוריה", bdByClientDate:"פירוט לפי לקוח ותאריך",
     phOther:"פירוט — מה בוצע?", clientAddedList:"הלקוח נוסף לרשימה",
     totalHours:"סך שעות", totalEntries:"דיווחים", searchPh:"חיפוש לקוח…",
     export:"ייצוא CSV", noData:"אין דיווחים להצגה", entries:"דיווחים", entry:"דיווח",
@@ -782,7 +773,7 @@ const I18N = {
     errCrypto:"Open the app over https",
     entryTitle:"Time entry", entrySub:"Log billable hours for a client",
     todayTitle:"Recent entries",
-    dashTitle:"Hours dashboard", dashSub:"Choose a breakdown",
+    dashTitle:"Hours dashboard", dashSub:"Choose a breakdown and a period",
     navEntry:"Time entry", navDash:"Dashboard", navSettings:"Settings",
     fDate:"Entry date", fClient:"Client name", fCats:"Billable activity",
     fCatsHint:"More than one may be selected", fHours:"Hours",
@@ -800,9 +791,9 @@ const I18N = {
     saved:"Entry saved", updated:"Entry updated", deleted:"Entry deleted",
     confirmDelete:"Delete this entry?",
     byClient:"By client", byDate:"By date", byCategory:"By activity", monthly:"Monthly", quarterly:"Quarterly",
-    presetMonth:"This month", presetPrev:"Last month", presetQuarter:"This quarter", presetYear:"This year", presetAll:"All",
+    presetMonth:"This month", presetPrev:"Last month", presetQuarter:"This quarter", presetYear:"This year", presetAll:"All", presetCustom:"Custom range",
     fromDate:"From", toDate:"To", clearRange:"Clear",
-    bdByPeriod:"Breakdown by month", bdByClient:"Breakdown by client", bdByClientDate:"Breakdown by client and date",
+    bdByCategory:"Breakdown by activity", bdByClientDate:"Breakdown by client and date",
     phOther:"Details — what was done?", clientAddedList:"Client added to the list",
     totalHours:"Total hours", totalEntries:"Entries", searchPh:"Search client…",
     export:"Export CSV", noData:"No entries to display", entries:"entries", entry:"entry",
@@ -865,6 +856,7 @@ const state = {
   search: "",
   rangeFrom: "",
   rangeTo: "",
+  rangeCustom: false,
   editingId: null,
   openGroups: {}
 };
@@ -1181,10 +1173,9 @@ function savePrefs(){
   if(state.user) store(K.prefs(state.user), { dashMode: state.dashMode });
 }
 function applyDashPrefs(){
-  const m = state.dashMode;
-  $("#modeClient").setAttribute("aria-pressed", m === "client");
-  $("#modeDate").setAttribute("aria-pressed", m === "date");
-  $("#modeCat").setAttribute("aria-pressed", m === "cat");
+  if(state.dashMode !== "cat") state.dashMode = "client";   // "date" mode was retired
+  $("#modeClient").setAttribute("aria-pressed", state.dashMode === "client");
+  $("#modeCat").setAttribute("aria-pressed", state.dashMode === "cat");
   syncRangeUI();
 }
 /* Date range filter (dashboard + CSV) — not persisted, every session starts with "all" */
@@ -1204,8 +1195,10 @@ function syncRangeUI(){
   $("#rangeTo").value = state.rangeTo;
   document.querySelectorAll("[data-preset]").forEach(b => {
     const [f,to] = presetRange(b.dataset.preset);
-    b.setAttribute("aria-pressed", f === state.rangeFrom && to === state.rangeTo);
+    b.setAttribute("aria-pressed", !state.rangeCustom && f === state.rangeFrom && to === state.rangeTo);
   });
+  $("#presetCustom").setAttribute("aria-pressed", state.rangeCustom);
+  $("#rangeInputs").classList.toggle("hidden", !state.rangeCustom);
 }
 function inRange(r){
   if(state.rangeFrom && r.date < state.rangeFrom) return false;
@@ -1902,34 +1895,20 @@ function renderRecent(){
     .slice(0,6);
   $("#recentList").innerHTML = recs.length ? recs.map(r => rowHTML(r, true)).join("") : `<div class="empty">${esc(t().noData)}</div>`;
 }
-function periodKey(iso){
-  const [y,m] = iso.split("-");
-  return state.period === "month" ? `${y}-${m}` : `${y}-Q${Math.floor((+m-1)/3)+1}`;
-}
-function periodLabel(key){
-  if(state.period === "month"){
-    const [y,m] = key.split("-");
-    return `${t().months[+m-1]} ${y}`;
-  }
-  const [y,q] = key.split("-Q");
-  return state.lang === "he" ? `${t().quarter} ${q} ${y}` : `Q${q} ${y}`;
-}
 const sumHours = rows => rows.reduce((s,r) => s + r.hours, 0);
 /* Sub-totals shown inside an open group: client → per period, date / category → per client */
-/* client → per month · date → per client · category → per client and date */
+/* client → per category · category → per client and date */
 function breakdownHTML(rows){
   const mode = state.dashMode;
-  const keyOf = mode === "client" ? (r => periodKey(r.date)) : mode === "cat" ? (r => r.client + "\u0000" + r.date) : (r => r.client);
+  const keyOf = mode === "client" ? (r => recLabel(r)) : (r => r.client + "\u0000" + r.date);
   const sub = {};
   rows.forEach(r => { sub[keyOf(r)] = (sub[keyOf(r)] || 0) + r.hours; });
   const keys = Object.keys(sub);
   if(keys.length < 2) return "";
-  if(mode === "client") keys.sort().reverse();
-  else if(mode === "cat") keys.sort((a,b) => a.localeCompare(b));
-  else keys.sort((a,b) => sub[b] - sub[a]);
-  const title = mode === "client" ? t().bdByPeriod : mode === "cat" ? t().bdByClientDate : t().bdByClient;
+  if(mode === "client") keys.sort((a,b) => sub[b] - sub[a]);
+  else keys.sort((a,b) => a.localeCompare(b));
+  const title = mode === "client" ? t().bdByCategory : t().bdByClientDate;
   const cell = k => {
-    if(mode === "client") return `<span class="bn">${esc(periodLabel(k))}</span>`;
     if(mode === "cat"){ const [c,d] = k.split("\u0000"); return `<span class="bn">${esc(c)}</span><span class="bd">${esc(fmtDate(d))}</span>`; }
     return `<span class="bn">${esc(k)}</span>`;
   };
@@ -1938,55 +1917,26 @@ function breakdownHTML(rows){
       <span class="bh">${fmtHours(sub[k])} ${esc(t().hoursShort)}</span>
     </div>`).join("")}</div>`;
 }
-/* by date: month → client (total) → category (hours). No transaction list — editing lives in "by client". */
-function monthTreeHTML(monthKey, rows){
-  const byClient = {};
-  rows.forEach(r => { (byClient[r.client] = byClient[r.client] || []).push(r); });
-  const clients = Object.keys(byClient).sort((a,b) => sumHours(byClient[b]) - sumHours(byClient[a]));
-  return `<div class="tree">${clients.map(c => {
-    const key = monthKey + "\u0000" + c;
-    const open = !!state.openGroups[key];
-    const byCat = {};
-    byClient[c].forEach(r => { const lbl = recLabel(r); byCat[lbl] = (byCat[lbl] || 0) + r.hours; });
-    const cats = Object.keys(byCat).sort((a,b) => byCat[b] - byCat[a]);
-    return `<button type="button" class="tree-client" data-group="${esc(key)}" aria-expanded="${open}">
-        <span class="caret">▶</span>
-        <span class="tn">${esc(c)}</span>
-        <span class="th">${fmtHours(sumHours(byClient[c]))} ${esc(t().hoursShort)}</span>
-      </button>
-      <div class="tree-cats ${open ? "" : "hidden"}">${cats.map(l => `<div class="bd-row">
-        <span class="bn">${esc(l)}</span>
-        <span class="bh">${fmtHours(byCat[l])} ${esc(t().hoursShort)}</span>
-      </div>`).join("")}</div>`;
-  }).join("")}</div>`;
-}
 function renderDash(){
   const recs = filteredRecords();
-
-  $("#statHours").textContent = fmtHours(sumHours(recs));
-  $("#statCount").textContent = recs.length;
-
   const mode = state.dashMode;
   const groups = {};
   recs.forEach(r => {
-    const key = mode === "client" ? r.client : mode === "cat" ? r.category : periodKey(r.date);
+    const key = mode === "client" ? r.client : r.category;
     (groups[key] = groups[key] || []).push(r);
   });
-  let keys = Object.keys(groups);
-  if(mode === "date") keys.sort().reverse();
-  else keys.sort((a,b) => sumHours(groups[b]) - sumHours(groups[a]));
+  const keys = Object.keys(groups).sort((a,b) => sumHours(groups[b]) - sumHours(groups[a]));
 
   const body = $("#dashBody");
   if(!keys.length){ body.innerHTML = `<div class="empty">${esc(t().noData)}</div>`; return; }
 
   body.innerHTML = keys.map(k => {
-    // inside a month the entries run oldest → newest; elsewhere newest first
-    const rows = groups[k].slice().sort((a,b) => mode === "date" ? a.date.localeCompare(b.date) : b.date.localeCompare(a.date));
+    const rows = groups[k].slice().sort((a,b) => b.date.localeCompare(a.date));
     const sum = sumHours(rows);
     const open = !!state.openGroups[k];
-    const name = mode === "client" ? k : mode === "cat" ? catLabel(k) : periodLabel(k);
+    const name = mode === "client" ? k : catLabel(k);
     const count = rows.length + " " + (rows.length === 1 ? t().entry : t().entries);
-    const inner = mode === "date" ? monthTreeHTML(k, rows) : breakdownHTML(rows) + rows.map(r => rowHTML(r, mode !== "client")).join("");
+    const inner = breakdownHTML(rows) + rows.map(r => rowHTML(r, mode !== "client")).join("");
     return `<div class="group">
       <button type="button" class="group-head" data-group="${esc(k)}" aria-expanded="${open}">
         <span class="caret">▶</span>
@@ -2226,22 +2176,19 @@ $("#modeClient").addEventListener("click", () => {
   state.dashMode = "client"; state.openGroups = {};
   applyDashPrefs(); savePrefs(); renderDash();
 });
-$("#modeDate").addEventListener("click", () => {
-  state.dashMode = "date"; state.openGroups = {};
-  applyDashPrefs(); savePrefs(); renderDash();
-});
 $("#modeCat").addEventListener("click", () => {
   state.dashMode = "cat"; state.openGroups = {};
   applyDashPrefs(); savePrefs(); renderDash();
 });
-function setRange(from, to){
+function setRange(from, to, custom){
   state.rangeFrom = from || ""; state.rangeTo = to || "";
+  state.rangeCustom = !!custom;
   syncRangeUI(); renderDash();
 }
-document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => setRange(...presetRange(b.dataset.preset))));
-$("#rangeFrom").addEventListener("change", e => setRange(e.target.value, state.rangeTo));
-$("#rangeTo").addEventListener("change", e => setRange(state.rangeFrom, e.target.value));
-$("#rangeClear").addEventListener("click", () => setRange("",""));
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => setRange(...presetRange(b.dataset.preset), false)));
+$("#presetCustom").addEventListener("click", () => { state.rangeCustom = true; syncRangeUI(); $("#rangeFrom").focus(); });
+$("#rangeFrom").addEventListener("change", e => setRange(e.target.value, state.rangeTo, true));
+$("#rangeTo").addEventListener("change", e => setRange(state.rangeFrom, e.target.value, true));
 
 $("#dashSearch").addEventListener("input", e => { state.search = e.target.value; renderDash(); });
 
