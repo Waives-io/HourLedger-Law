@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="HourLedger-Law">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" id="favicon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
@@ -2314,6 +2315,7 @@ function installPasswordToggles(){
 }
 
 /* boot */
+if("serviceWorker" in navigator && location.protocol === "https:"){ navigator.serviceWorker.register("sw.js").catch(() => {}); }
 installPasswordToggles();
 $("#logoHead").src = LOGO_SRC;
 $("#logoLogin").src = LOGO_SRC;
