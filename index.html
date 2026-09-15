@@ -205,6 +205,9 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .row .rhours{font-weight:800;font-variant-numeric:tabular-nums;font-size:15px;flex:none}
 .row .redit{border:1px solid var(--line-strong);background:var(--white);border-radius:var(--r-sm);padding:6px 10px;font-size:12.5px;font-weight:700;color:var(--navy);flex:none}
 .row .redit:hover{border-color:var(--gold);background:var(--gold-soft)}
+.row .ractions{display:flex;gap:6px;flex:none}
+.row .rdel{color:var(--error);padding:6px 9px}
+.row .rdel:hover{border-color:var(--error);background:rgba(163,56,47,.07)}
 .empty{text-align:center;padding:36px 16px;color:var(--ink-faint);font-weight:600;font-size:14.5px}
 .toolbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
 .toolbar .control{flex:1;min-width:180px;padding:11px 13px;font-size:15px}
@@ -1860,13 +1863,16 @@ function updateEntry(){
   toast(t().updated);
   renderAll();
 }
-function deleteEntry(){
-  if(!confirm(t().confirmDelete)) return;
-  const rec = state.records.find(r => r.id === state.editingId);
-  state.records = state.records.filter(r => r.id !== state.editingId);
+function deleteEntry(id){
+  id = id || state.editingId;
+  const rec = state.records.find(r => r.id === id);
+  if(!rec) return;
+  if(!confirm(`${t().confirmDelete}
+${fmtDate(rec.date)} · ${rec.client} · ${recLabel(rec)} · ${fmtHours(rec.hours)} ${t().hoursShort}`)) return;
+  state.records = state.records.filter(r => r.id !== id);
   saveOrgData();
-  if(rec){ cloudRec(rec, "delete"); queue(rec, "delete"); }
-  closeModal();
+  cloudRec(rec, "delete"); queue(rec, "delete");
+  if(state.editingId === id) closeModal();
   toast(t().deleted);
   renderAll();
 }
@@ -1886,7 +1892,10 @@ function rowHTML(r, showClient){
       ${r.notes ? `<div class="rnotes">${esc(r.notes)}</div>` : ""}
     </div>
     <div class="rhours">${fmtHours(r.hours)}</div>
-    <button type="button" class="redit" data-edit="${r.id}">${esc(t().edit)}</button>
+    <div class="ractions">
+      <button type="button" class="redit" data-edit="${r.id}">${esc(t().edit)}</button>
+      <button type="button" class="redit rdel" data-del="${r.id}" aria-label="${esc(t().delete)}">✕</button>
+    </div>
   </div>`;
 }
 function renderRecent(){
@@ -2160,7 +2169,7 @@ $("#secBtn").addEventListener("click", updateSecurity);
 
 $("#saveBtn").addEventListener("click", saveEntry);
 $("#updateBtn").addEventListener("click", updateEntry);
-$("#deleteBtn").addEventListener("click", deleteEntry);
+$("#deleteBtn").addEventListener("click", () => deleteEntry());
 $("#modalClose").addEventListener("click", closeModal);
 $("#modalBg").addEventListener("mousedown", e => { if(e.target.id === "modalBg") closeModal(); });
 document.addEventListener("keydown", e => { if(e.key === "Escape" && state.editingId) closeModal(); });
@@ -2305,6 +2314,8 @@ document.addEventListener("click", e => {
   if(head){ state.openGroups[head.dataset.group] = !state.openGroups[head.dataset.group]; renderDash(); return; }
   const ed = e.target.closest("[data-edit]");
   if(ed){ openModal(ed.dataset.edit); return; }
+  const del = e.target.closest("[data-del]");
+  if(del){ deleteEntry(del.dataset.del); return; }
   const dc = e.target.closest("[data-del-client]");
   if(dc){ removeClient(dc.dataset.delClient); return; }
   const dk = e.target.closest("[data-del-cat]");
