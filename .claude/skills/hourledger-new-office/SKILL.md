@@ -10,18 +10,34 @@ description: פתיחת משרד עו"ד חדש ב-HourLedger-Law — הקמת �
 
 ## עקרון
 
-כל משרד = יחידה עצמאית:
+**אתר אחד = משרד אחד.** כל משרד מקבל פריסה משלו של האפליקציה (ריפו + GitHub Pages משלו), עם שם המשרד וה-webhook צרובים בקובץ `index.html` (הקבוע `FIRM` בראש הסקריפט). ההרשמה באתר של משרד לא שואלת שם משרד — כל מי שנרשם שם שייך למשרד הזה. Supabase נשאר **פרויקט אחד משותף** לכל המשרדים (ההפרדה היא לפי `org`).
 
 | רכיב | של מי | איפה |
 |---|---|---|
+| ריפו + אתר (GitHub Pages) | של WAIVES, אחד למשרד | `Waives-io/HourLedger-<משרד>` |
 | חשבון Make + תרחיש | של המשרד (חשבון Make משלו, Free מספיק למשרד אחד) | make.com |
 | גיליון Google Sheets | של המשרד | Google Drive של המשרד |
 | Webhook | נוצר אוטומטית בתרחיש | מודול ה-Webhook |
-| חשבון באפליקציה | של המשרד | https://waives-io.github.io/HourLedger-Law/ |
+| חשבון באפליקציה | של המשרד | האתר של המשרד |
 
-ה-webhook נשמר ברשומת המשרד באפליקציה (Supabase `orgs.webhook`, או במכשיר במצב מכשיר-בלבד). **אין לגעת בקוד** בשביל משרד חדש.
+לפני שמתחילים, לאסוף: שם המשרד (בכתיב שיופיע בכל מקום), אימייל של המשרד, מי במשרד ידווח שעות.
 
-לפני שמתחילים, לאסוף: שם המשרד, אימייל של המשרד, מי במשרד ידווח שעות.
+---
+
+## שלב 0 — ריפו ואתר למשרד
+
+1. In GitHub, open `Waives-io/HourLedger-Law` → **Use this template** → **Create a new repository** (if the button is missing: repo **Settings → General → tick "Template repository"** first).
+   - Owner: **Waives-io** · Name: `HourLedger-<office>` (e.g. `HourLedger-Cohen`) · **Public** (required for free Pages) → **Create repository**.
+2. Clone it locally, open `index.html`, and edit the `FIRM` block near the top of the script:
+   ```js
+   const FIRM = {
+     name: '<שם המשרד המדויק>',
+     webhook: ""            // filled in step 2 below, after Make gives the URL
+   };
+   ```
+   Commit + push (Hebrew message). Claude does this part when asked.
+3. Repo **Settings → Pages → Source: Deploy from a branch → main / (root) → Save**. After a minute the site is live at `https://waives-io.github.io/HourLedger-<office>/`.
+4. Supabase (project `HourLedger-Law`) → **Authentication → URL Configuration → Redirect URLs → Add URL** → the new site address → Save. Without this, confirmation and reset emails won't open the new site.
 
 ---
 
@@ -57,7 +73,7 @@ O עדכון אחרון
 2. **Scenarios → Create a new scenario**.
 3. Top-right **⋮** (next to Help) → **Import Blueprint** → choose `make/HourLedger-Sheets.blueprint.json` from the repo.
 4. You should see 9 modules (Webhook → Router with 3 branches). If you see only 2 modules, the wrong file was picked — reload and import again.
-5. Click the **Webhook** module → **Add** → name it `HourLedger <שם המשרד>` → Save. This creates a new webhook URL for the office. **Copy the URL** (`https://hook.eu1.make.com/…`) — it's needed in step 4.
+5. Click the **Webhook** module → **Add** → name it `HourLedger <שם המשרד>` → Save. This creates a new webhook URL for the office. **Copy the URL** (`https://hook.eu1.make.com/…`) and paste it into `FIRM.webhook` in the office's `index.html` (commit + push). It can also be changed later from the app's Settings.
 6. Open **each** Google Sheets module (there are 6: 2× Add a Row, 2× Search Rows, 2× Update a Row):
    - **Connection**: Add → sign in with the office's Google account.
    - **Spreadsheet**: pick the sheet from step 1. **Sheet Name**: `DB of Hours Reported`.
@@ -67,16 +83,17 @@ O עדכון אחרון
 
 ## שלב 3 — חשבון באפליקציה
 
-1. On the office's phone open https://waives-io.github.io/HourLedger-Law/ → **Share → Add to Home Screen** (iPhone) or **⋮ → Add to Home screen** (Android).
-2. Tap **פתיחת חשבון**: office name, email, password (6+ chars), quick access code (4–6 digits).
-3. If Supabase is configured, a confirmation email arrives — click the link, then sign in.
+עדיף שגלי תפתח את החשבון מהמחשב שלה ותשלח למשרד מייל + סיסמה זמנית; המשרד רק נכנס.
+
+1. Open the office's site (from step 0) → **פתיחת חשבון**: email, password (6+ chars), quick access code (4 digits). The office name is already fixed — no field for it.
+2. A confirmation email arrives — click the link, then sign in. (Supabase's built-in mailer allows ~2 emails/hour; if it fails, wait an hour or connect custom SMTP.)
+3. On the office's phone open the site → **Share → Add to Home Screen** (iPhone) or **⋮ → Add to Home screen** (Android) → sign in with email + password → set a 4-digit code for that phone.
 4. **הגדרות → רשימת לקוחות**: paste the office's client list (one per line or comma-separated).
 
-## שלב 4 — חיבור ה-webhook
+## שלב 4 — לוודא את ה-webhook
 
-1. In the app: **הגדרות → חשבון וסנכרון → כתובת ה-webhook של המשרד (Make)**.
-2. Paste the URL from step 2.5 → **שמירה**. "סנכרון לגוגל שיטס" should now read **פעיל**.
-3. In the cloud setup the address is saved on the office record, so every device of that office picks it up.
+1. In the app: **הגדרות → חשבון וסנכרון** — "סנכרון לגוגל שיטס" should read **פעיל** and the webhook field should show the office's URL (it was set from `FIRM.webhook` at signup).
+2. If it's empty (account created before the webhook existed): paste the URL → **שמירה**. The address is saved on the office record in Supabase, so every device picks it up.
 
 ## שלב 5 — בדיקה (חובה)
 

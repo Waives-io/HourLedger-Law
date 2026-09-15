@@ -74,6 +74,7 @@ button{cursor:pointer}
 .sec-form{display:flex;flex-direction:column;gap:10px;margin-top:6px}
 .login-brand .tag{font-size:13.5px;font-weight:600;color:var(--ink-soft)}
 .login-note{margin-top:16px;font-size:12.5px;color:var(--ink-faint);text-align:center;font-weight:600}
+.firm-name{margin-top:10px;font-size:15px;font-weight:800;color:var(--navy);text-align:center}
 .notice{background:var(--gold-soft);border:1px solid var(--gold);border-radius:var(--r-md);padding:12px 14px;margin-bottom:16px;font-size:14px;font-weight:600;line-height:1.5}
 .notice b{direction:ltr;unicode-bidi:embed}
 .login-title{font-size:17px;font-weight:800;margin:0 0 4px}
@@ -287,14 +288,15 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <img id="logoLogin" alt="HourLedger-Law">
       <div class="name">HourLedger<span class="suffix">Law</span></div>
       <div class="tag" data-i18n="loginTag">ניהול שעות למשרדי עורכי דין</div>
+      <div class="firm-name hidden" id="firmName"></div>
     </div>
 
     <!-- quick unlock with the access code -->
     <div id="pinPanel" class="hidden">
       <div class="who" id="pinWho"></div>
       <div class="field">
-        <label for="pinInput" data-i18n="fPin">קוד כניסה</label>
-        <input type="password" id="pinInput" class="control pin" inputmode="numeric" autocomplete="off" maxlength="6" dir="ltr">
+        <label for="pinInput"><span data-i18n="fPin">קוד כניסה</span> <span class="hint" data-i18n="pinDigits">4 ספרות</span></label>
+        <input type="password" id="pinInput" class="control pin" inputmode="numeric" autocomplete="off" maxlength="4" dir="ltr">
         <span class="err" id="pinErr"></span>
       </div>
       <button type="button" class="btn btn-primary btn-block" id="pinBtn" data-i18n="enter">כניסה</button>
@@ -358,9 +360,9 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
     <!-- optional quick access code on a new device -->
     <div id="pinSetupPanel" class="hidden">
       <h2 class="login-title" data-i18n="pinSetupTitle">קוד כניסה מהיר למכשיר הזה</h2>
-      <p class="login-sub" data-i18n="pinSetupSub">4 עד 6 ספרות. בפעם הבאה נכנסים עם הקוד במקום הסיסמה</p>
+      <p class="login-sub" data-i18n="pinSetupSub">קוד בן 4 ספרות. בפעם הבאה נכנסים עם הקוד במקום הסיסמה</p>
       <div class="field">
-        <input type="password" id="pinSetupInput" class="control pin" inputmode="numeric" maxlength="6" autocomplete="off" dir="ltr">
+        <input type="password" id="pinSetupInput" class="control pin" inputmode="numeric" maxlength="4" autocomplete="off" dir="ltr">
         <span class="err" id="pinSetupErr"></span>
       </div>
       <button type="button" class="btn btn-primary btn-block" id="pinSetupBtn" data-i18n="pinSetupSave">שמירה</button>
@@ -369,7 +371,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 
     <!-- first run on this device -->
     <div id="setupPanel" class="hidden">
-      <div class="field">
+      <div class="field" id="suFirmField">
         <label for="suFirm" data-i18n="fFirm">שם המשרד</label>
         <input type="text" id="suFirm" class="control">
       </div>
@@ -386,8 +388,8 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
         <input type="password" id="suPass2" class="control" autocomplete="new-password" dir="ltr">
       </div>
       <div class="field">
-        <label for="suPin" data-i18n="fPinNew">קוד כניסה מהיר<span class="hint" data-i18n="fPinHint">4 ספרות, לכניסות הבאות במכשיר הזה</span></label>
-        <input type="password" id="suPin" class="control pin" inputmode="numeric" maxlength="6" autocomplete="off" dir="ltr">
+        <label for="suPin" data-i18n="fPinNew">קוד כניסה מהיר<span class="hint" data-i18n="fPinHint">קוד בן 4 ספרות, לכניסות הבאות במכשיר הזה</span></label>
+        <input type="password" id="suPin" class="control pin" inputmode="numeric" maxlength="4" autocomplete="off" dir="ltr">
         <span class="err" id="setupErr"></span>
       </div>
       <button type="button" class="btn btn-primary btn-block" id="setupBtn" data-i18n="createAccount">פתיחת חשבון</button>
@@ -523,7 +525,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
         <input type="password" class="control" id="curPass" placeholder="סיסמה נוכחית" data-i18n-ph="phCurPass" autocomplete="current-password" dir="ltr">
         <input type="password" class="control" id="newPass" placeholder="סיסמה חדשה" data-i18n-ph="phNewPass" autocomplete="new-password" dir="ltr">
         <input type="password" class="control" id="newPass2" placeholder="אימות סיסמה חדשה" data-i18n-ph="phNewPass2" autocomplete="new-password" dir="ltr">
-        <input type="password" class="control pin" id="newPin" placeholder="0000" inputmode="numeric" maxlength="6" autocomplete="off" dir="ltr">
+        <input type="password" class="control pin" id="newPin" placeholder="0000" inputmode="numeric" maxlength="4" autocomplete="off" dir="ltr">
         <span class="hint" data-i18n="secHint">אפשר לעדכן רק סיסמה, רק קוד כניסה, או את שניהם</span>
         <button type="button" class="btn btn-primary" id="secBtn" data-i18n="updateSecurity">עדכון</button>
         <span class="err" id="secErr"></span>
@@ -591,9 +593,16 @@ const sb = (SUPABASE_URL && SUPABASE_KEY && window.supabase)
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } })
   : null;
 const cloudMode = () => !!sb;
-/* Oren Weinberg's Make webhook — used only by the built-in "weinberg" org.
-   Every other office sets its own webhook in Settings (stored per org). */
-const WEINBERG_WEBHOOK = "https://hook.eu1.make.com/3f461zbp81thyc76u95jzfs3yn6i5p1r";
+/* ---------- This deployment's office ----------
+   One deployment (one GitHub Pages site) = one law office. Set the name and the
+   office's Make webhook here; signup then skips the "office name" field and every
+   account created on this site belongs to this office. To onboard another office,
+   copy the repo and change these two lines (see .claude/skills/hourledger-new-office). */
+const FIRM = {
+  name: 'עו"ד אורן ויינברג',
+  webhook: "https://hook.eu1.make.com/3f461zbp81thyc76u95jzfs3yn6i5p1r"
+};
+const WEINBERG_WEBHOOK = FIRM.webhook;
 const LOGO_SRC = "data:image/png;base64,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";
 
 /* ---------- Tenants ---------- */
@@ -649,7 +658,7 @@ const I18N = {
     sentReset:"אם קיים חשבון עם המייל הזה, נשלח אליו קישור לאיפוס",
     resetTitle:"קביעת סיסמה חדשה", resetSub:"הסיסמה החדשה תחול על כל המכשירים", saveReset:"שמירת הסיסמה", resetDone:"הסיסמה עודכנה",
     confirmTitle:"כמעט סיימנו", confirmMsg:"שלחנו מייל אימות אל", confirmMsg2:"אחרי הלחיצה על הקישור במייל אפשר להיכנס.",
-    pinSetupTitle:"קוד כניסה מהיר למכשיר הזה", pinSetupSub:"4 עד 6 ספרות. בפעם הבאה נכנסים עם הקוד במקום הסיסמה",
+    pinSetupTitle:"קוד כניסה מהיר למכשיר הזה", pinSetupSub:"קוד בן 4 ספרות. בפעם הבאה נכנסים עם הקוד במקום הסיסמה",
     pinSetupSave:"שמירה", pinSetupSkip:"דילוג בינתיים",
     errNotConfirmed:"האימייל עדיין לא אומת — יש ללחוץ על הקישור במייל", errCloud:"שגיאת תקשורת — נסו שוב",
     errNoCloudSession:"יש להיכנס עם סיסמה", errRate:"יותר מדי ניסיונות — נסו שוב בעוד כמה דקות",
@@ -661,11 +670,11 @@ const I18N = {
     importLocal:"ייבוא דיווחים מהמכשיר", importPrompt:"נמצאו {n} דיווחים שנשמרו במכשיר הזה לפני המעבר לענן. להעלות אותם לחשבון?",
     importDone:"הועלו לענן — דיווחים:", cloudPulled:"סונכרן מהענן",
     fFirm:"שם המשרד", fPassNew:"סיסמה", fPass2:"אימות סיסמה",
-    fPin:"קוד כניסה", fPinNew:"קוד כניסה מהיר", fPinHint:"4 ספרות, לכניסות הבאות במכשיר הזה",
+    fPin:"קוד כניסה", pinDigits:"4 ספרות", fPinNew:"קוד כניסה מהיר", fPinHint:"קוד בן 4 ספרות, לכניסות הבאות במכשיר הזה",
     enter:"כניסה", createAccount:"פתיחת חשבון",
     setupNote:"החשבון נשמר במכשיר הזה. אחרי הפתיחה מזינים את רשימת הלקוחות",
     errEmail:"כתובת אימייל לא תקינה",
-    errPin:"קוד כניסה שגוי", errPinEmpty:"יש להזין קוד כניסה", errPinFormat:"קוד הכניסה חייב להיות 4 עד 6 ספרות",
+    errPin:"קוד כניסה שגוי", errPinEmpty:"יש להזין קוד כניסה", errPinFormat:"קוד הכניסה חייב להיות בן 4 ספרות",
     securityTitle:"סיסמה וקוד כניסה", securitySub:"שינוי הפרטים של החשבון במכשיר הזה",
     phCurPass:"סיסמה נוכחית", phNewPass:"סיסמה חדשה", phNewPass2:"אימות סיסמה חדשה",
     secHint:"אפשר לעדכן רק סיסמה, רק קוד כניסה, או את שניהם",
@@ -732,7 +741,7 @@ const I18N = {
     sentReset:"If an account exists for this email, a reset link is on its way",
     resetTitle:"Set a new password", resetSub:"The new password applies on every device", saveReset:"Save password", resetDone:"Password updated",
     confirmTitle:"Almost done", confirmMsg:"We sent a confirmation email to", confirmMsg2:"After clicking the link in the email you can sign in.",
-    pinSetupTitle:"Quick access code for this device", pinSetupSub:"4 to 6 digits. Next time, sign in with the code instead of the password",
+    pinSetupTitle:"Quick access code for this device", pinSetupSub:"A 4-digit code. Next time, sign in with the code instead of the password",
     pinSetupSave:"Save", pinSetupSkip:"Skip for now",
     errNotConfirmed:"Email not confirmed yet — click the link in the email", errCloud:"Connection error — try again",
     errNoCloudSession:"Please sign in with your password", errRate:"Too many attempts — try again in a few minutes",
@@ -744,11 +753,11 @@ const I18N = {
     importLocal:"Import entries from this device", importPrompt:"Found {n} entries saved on this device before moving to the cloud. Upload them to your account?",
     importDone:"Uploaded to the cloud — entries:", cloudPulled:"Synced from the cloud",
     fFirm:"Office name", fPassNew:"Password", fPass2:"Confirm password",
-    fPin:"Access code", fPinNew:"Quick access code", fPinHint:"4 digits, for next logins on this device",
+    fPin:"Access code", pinDigits:"4 digits", fPinNew:"Quick access code", fPinHint:"a 4-digit code, for next logins on this device",
     enter:"Enter", createAccount:"Create account",
     setupNote:"The account is stored on this device. Next, add your client list",
     errEmail:"Invalid email address",
-    errPin:"Wrong access code", errPinEmpty:"Enter the access code", errPinFormat:"The code must be 4 to 6 digits",
+    errPin:"Wrong access code", errPinEmpty:"Enter the access code", errPinFormat:"The code must be exactly 4 digits",
     securityTitle:"Password & access code", securitySub:"Change this device's account details",
     phCurPass:"Current password", phNewPass:"New password", phNewPass2:"Confirm new password",
     secHint:"Update the password, the access code, or both",
@@ -928,7 +937,7 @@ function showPanel(which){
   ["pinPanel","loginPanel","setupPanel","forgotPanel","resetPanel","confirmPanel","pinSetupPanel"].forEach(id => {
     $("#" + id).classList.toggle("hidden", id !== which);
   });
-  const first = { pinPanel:"#pinInput", loginPanel:"#loginEmail", setupPanel:"#suFirm", forgotPanel:"#forgotEmail", resetPanel:"#resetPass", pinSetupPanel:"#pinSetupInput" }[which];
+  const first = { pinPanel:"#pinInput", loginPanel:"#loginEmail", setupPanel: FIRM.name ? "#suEmail" : "#suFirm", forgotPanel:"#forgotEmail", resetPanel:"#resetPass", pinSetupPanel:"#pinSetupInput" }[which];
   const el = $(first);
   if(el) setTimeout(() => el.focus(), 30);
 }
@@ -1023,7 +1032,7 @@ async function doLogin(){
 }
 
 async function doSetup(){
-  const firm  = $("#suFirm").value.trim();
+  const firm  = FIRM.name || $("#suFirm").value.trim();
   const email = $("#suEmail").value.trim().toLowerCase();
   const pass  = $("#suPass").value;
   const pass2 = $("#suPass2").value;
@@ -1034,13 +1043,13 @@ async function doSetup(){
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent = t().errEmail; return; }
   if(pass.length < 6){ err.textContent = t().errShortPass; return; }
   if(pass !== pass2){ err.textContent = t().errMatch; return; }
-  if(!/^\d{4,6}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
+  if(!/^\d{4}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
   if(cloudMode()){
     if(isDemo(email)){ err.textContent = t().errTaken; return; }
     const ph = await pinHash(email, pin);
     if(ph === null){ err.textContent = t().errCrypto; return; }
     $("#setupBtn").disabled = true;
-    const { data, error } = await sb.auth.signUp({ email, password: pass, options:{ data:{ firm }, emailRedirectTo: SITE_URL } });
+    const { data, error } = await sb.auth.signUp({ email, password: pass, options:{ data:{ firm, webhook: FIRM.webhook || "" }, emailRedirectTo: SITE_URL } });
     $("#setupBtn").disabled = false;
     if(error){ err.textContent = cloudErr(error, t().errCloud); return; }
     // Supabase returns a user with no identities when the email is already registered
@@ -1068,7 +1077,7 @@ async function doSetup(){
 
   const org = "f_" + uid();
   const orgs = dynOrgs();
-  orgs[org] = { he: firm, en: firm, webhook: "", clients: [] };
+  orgs[org] = { he: firm, en: firm, webhook: FIRM.webhook || "", clients: [] };
   store(KA.orgs, orgs);
   const accs = accountsList();
   accs.push({ email, hash, pinHash: ph, org, firm });
@@ -1095,7 +1104,7 @@ async function updateSecurity(){
     if(np.length < 6){ err.textContent = t().errShortPass; return; }
     if(np !== np2){ err.textContent = t().errMatch; return; }
   }
-  if(pin && !/^\d{4,6}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
+  if(pin && !/^\d{4}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
   if(state.cloud){
     $("#secBtn").disabled = true;
     const chk = await sb.auth.signInWithPassword({ email: state.user, password: cur });
@@ -1120,7 +1129,7 @@ async function updateSecurity(){
     if(np.length < 6){ err.textContent = t().errShortPass; return; }
     if(np !== np2){ err.textContent = t().errMatch; return; }
   }
-  if(pin && !/^\d{4,6}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
+  if(pin && !/^\d{4}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
 
   const accs = accountsList();
   const i = accs.findIndex(a => a.email === acc.email);
@@ -2051,6 +2060,9 @@ function applyLang(){
     $('[data-i18n="securitySub"]').textContent = L.securitySubCloud;
   }
   $("#toForgot").classList.toggle("hidden", !cloudMode());
+  $("#suFirmField").classList.toggle("hidden", !!FIRM.name);
+  $("#firmName").textContent = FIRM.name || "";
+  $("#firmName").classList.toggle("hidden", !FIRM.name);
   const pinEmail = $("#pinPanel").dataset.email;
   if(pinEmail){
     const acc = findAccount(pinEmail);
@@ -2248,7 +2260,7 @@ $("#resetPass2").addEventListener("keydown", e => { if(e.key === "Enter") $("#re
 $("#pinSetupBtn").addEventListener("click", async () => {
   const pin = $("#pinSetupInput").value.trim(), err = $("#pinSetupErr");
   err.textContent = "";
-  if(!/^\d{4,6}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
+  if(!/^\d{4}$/.test(pin)){ err.textContent = t().errPinFormat; return; }
   const user = pendingPinUser || cloudUser;
   if(!user){ showPanel("loginPanel"); return; }
   upsertLocalAccount({ email: user.email.toLowerCase(), cloud:true, pinHash: await pinHash(user.email, pin) });
