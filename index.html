@@ -214,6 +214,7 @@ input[type="email"].control,input[type="password"].control{direction:ltr;text-al
 .group-head .caret{color:var(--gold);font-size:12px;transition:transform .2s var(--ease);flex:none}
 html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .group-head[aria-expanded="true"] .caret,html[dir="rtl"] .group-head[aria-expanded="true"] .caret{transform:rotate(90deg)}
+.group-head[aria-expanded="true"]{background:var(--gold-soft)}
 .group-head .gname{font-weight:700;font-size:15.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .group-head .gmeta{font-size:12.5px;color:var(--ink-faint);font-weight:600;flex:none}
 .group-head .ghours{font-weight:800;font-size:16px;color:var(--navy);font-variant-numeric:tabular-nums;flex:none;background:var(--gold-soft);border-radius:var(--r-pill);padding:3px 11px}
@@ -258,16 +259,17 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .bd-row .bn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bd-row .bh{font-variant-numeric:tabular-nums;color:var(--navy);flex:none}
 .tree{background:var(--surface)}
-.tree-client{display:flex;align-items:center;gap:10px;width:100%;border:0;border-bottom:1px solid var(--line);background:var(--white);padding:11px 14px;text-align:inherit}
-.tree-client:hover{background:var(--surface)}
+.tree-client{display:flex;align-items:center;gap:10px;width:100%;border:0;border-bottom:1px solid var(--line);background:var(--surface-2);padding:11px 14px;text-align:inherit;border-inline-start:4px solid var(--steel)}
+.tree-client:hover{background:rgba(124,150,181,.22)}
+.tree-client[aria-expanded="true"]{background:rgba(124,150,181,.24)}
 .tree-client .caret{color:var(--gold);font-size:11px;transition:transform .2s var(--ease);flex:none}
 .tree-client[aria-expanded="true"] .caret{transform:rotate(90deg)}
 .tree-client .tn{flex:1;min-width:0;font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tree-client .th{font-weight:800;font-variant-numeric:tabular-nums;color:var(--navy);flex:none}
 .tree-cats{padding:6px 14px 8px 14px;padding-inline-start:36px;background:var(--gold-soft);border-bottom:1px solid var(--line)}
 .tree-client .tm{font-size:12px;color:var(--ink-faint);font-weight:600;flex:none}
-.tree-lines{background:var(--surface);border-bottom:1px solid var(--line)}
-.tline{display:flex;align-items:center;gap:8px;padding:8px 14px;padding-inline-start:36px;border-bottom:1px solid var(--line);font-size:13.5px}
+.tree-lines{background:var(--white);border-bottom:1px solid var(--line);border-inline-start:4px solid var(--gold)}
+.tline{display:flex;align-items:center;gap:8px;padding:8px 14px;padding-inline-start:28px;border-bottom:1px solid var(--line);font-size:13.5px}
 .tline:last-child{border-bottom:0}
 .tline .tdate{font-weight:700;font-variant-numeric:tabular-nums;flex:none}
 .tline .tcat{color:var(--ink-soft);font-weight:600;flex:none;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1960,7 +1962,7 @@ function subTreeHTML(groupKey, rows, mode){
   rows.forEach(r => { (by[keyOf(r)] = by[keyOf(r)] || []).push(r); });
   const subs = Object.keys(by).sort(mode === "client" ? (a,b) => sumHours(by[b]) - sumHours(by[a]) : (a,b) => a.localeCompare(b, "he"));
   return `<div class="tree">${subs.map(name => {
-    const key = groupKey + "\u0000" + name;
+    const key = groupKey + "\u241E" + name;   // record separator: survives HTML attributes (NUL does not)
     const open = !!state.openGroups[key];
     const lines = by[name].slice().sort((a,b) => a.date.localeCompare(b.date));
     return `<button type="button" class="tree-client" data-group="${esc(key)}" aria-expanded="${open}">
