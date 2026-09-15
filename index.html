@@ -231,6 +231,14 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .bd-row{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;font-weight:700;padding:3px 0}
 .bd-row .bn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .bd-row .bh{font-variant-numeric:tabular-nums;color:var(--navy);flex:none}
+.tree{background:var(--surface)}
+.tree-client{display:flex;align-items:center;gap:10px;width:100%;border:0;border-bottom:1px solid var(--line);background:var(--white);padding:11px 14px;text-align:inherit}
+.tree-client:hover{background:var(--surface)}
+.tree-client .caret{color:var(--gold);font-size:11px;transition:transform .2s var(--ease);flex:none}
+.tree-client[aria-expanded="true"] .caret{transform:rotate(90deg)}
+.tree-client .tn{flex:1;min-width:0;font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tree-client .th{font-weight:800;font-variant-numeric:tabular-nums;color:var(--navy);flex:none}
+.tree-cats{padding:6px 14px 8px 14px;padding-inline-start:36px;background:var(--gold-soft);border-bottom:1px solid var(--line)}
 
 /* ===== Settings lists ===== */
 .list{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;margin-bottom:12px;max-height:320px;overflow-y:auto}
@@ -1525,6 +1533,8 @@ function createForm(root, prefix, mode){
   let active = -1, options = [];
   const hoursMap = {};
   let otherText = "";
+  let addedClient = "";   // client just added via "+", keeps the "added" note until the field changes
+  const selOrder = [];    // categories in the order they were tapped — the lines follow this order
 
   /* ---- client combobox ---- */
   function openList(){
@@ -1567,9 +1577,11 @@ function createForm(root, prefix, mode){
       rememberClient(options[i].value);
       saveOrgData();
       renderSettings();
+      addedClient = options[i].value;
       toast(t().clientAddedList);
     }
     checkClient();
+    cliEl.blur();   // leave the field so the list doesn't pop open again
     cliEl.classList.remove("invalid");
     $('[data-e="client"]', root).textContent = "";
   }
@@ -1581,10 +1593,12 @@ function createForm(root, prefix, mode){
     const q = norm(raw);
     const list = state.clients;
     if(list.some(c => norm(c) === q)){
-      noteEl.className = "note info";
-      noteEl.textContent = "✓ " + t().existsNote;
-      noteEl.classList.remove("hidden");
-      return;
+      if(addedClient && norm(addedClient) === q){
+        noteEl.className = "note info";
+        noteEl.textContent = "✓ " + t().clientAddedList;
+        noteEl.classList.remove("hidden");
+      }
+      return;   // an existing client needs no remark
     }
     const near = list.filter(c => {
       const n = norm(c);
@@ -1598,7 +1612,7 @@ function createForm(root, prefix, mode){
     }
   }
 
-  cliEl.addEventListener("input", openList);
+  cliEl.addEventListener("input", () => { addedClient = ""; openList(); });
   cliEl.addEventListener("focus", openList);
   cliEl.addEventListener("click", openList);
   cliEl.addEventListener("keydown", e => {
@@ -1620,7 +1634,11 @@ function createForm(root, prefix, mode){
 
   /* ---- categories + one hours row per selected category ---- */
   function selectedCats(){
-    return Array.from(chipsEl.querySelectorAll('.chip[aria-pressed="true"]')).map(c => c.dataset.cat);
+    const on = new Set(Array.from(chipsEl.querySelectorAll('.chip[aria-pressed="true"]')).map(c => c.dataset.cat));
+    // tap order first, then anything selected some other way (e.g. keyboard) that isn't tracked yet
+    const ordered = selOrder.filter(id => on.has(id));
+    on.forEach(id => { if(!ordered.includes(id)) ordered.push(id); });
+    return ordered;
   }
   function renderLines(){
     const sel = selectedCats();
@@ -1646,12 +1664,17 @@ function createForm(root, prefix, mode){
     const chip = e.target.closest(".chip");
     if(!chip) return;
     const on = chip.getAttribute("aria-pressed") === "true";
+    const id = chip.dataset.cat;
     if(mode === "single"){
       chipsEl.querySelectorAll(".chip").forEach(c => { c.setAttribute("aria-pressed","false"); c.setAttribute("aria-checked","false"); });
       if(!on){ chip.setAttribute("aria-pressed","true"); chip.setAttribute("aria-checked","true"); }
+      selOrder.length = 0; if(!on) selOrder.push(id);
     }else{
       chip.setAttribute("aria-pressed", on ? "false" : "true");
       chip.setAttribute("aria-checked", on ? "false" : "true");
+      const at = selOrder.indexOf(id);
+      if(on && at > -1) selOrder.splice(at, 1);
+      if(!on && at < 0) selOrder.push(id);
     }
     $('[data-e="cats"]', root).textContent = "";
     renderLines();
@@ -1714,6 +1737,7 @@ function createForm(root, prefix, mode){
       Object.keys(hoursMap).forEach(k => delete hoursMap[k]);
       const lines = v.lines || [];
       const ids = lines.map(l => l.category);
+      selOrder.length = 0; ids.forEach(id => selOrder.push(id));
       lines.forEach(l => { if(l.hours) hoursMap[l.category] = l.hours; });
       otherText = (lines.find(l => l.category === "other") || {}).otherText || "";
       chipsEl.querySelectorAll(".chip").forEach(c => {
@@ -1759,7 +1783,9 @@ function createForm(root, prefix, mode){
       api.setValue({ date: todayISO(), client:"", notes:"", lines:[] });
       root.querySelectorAll(".err").forEach(e => e.textContent = "");
       noteEl.classList.add("hidden");
-      cliEl.focus();
+      addedClient = "";
+      if(document.activeElement) document.activeElement.blur();
+      root.scrollIntoView({ block:"start", behavior:"smooth" });
     }
   };
   api.setValue({ date: todayISO(), lines:[] });
@@ -1908,6 +1934,28 @@ function breakdownHTML(rows){
       <span class="bh">${fmtHours(sub[k])} ${esc(t().hoursShort)}</span>
     </div>`).join("")}</div>`;
 }
+/* by date: month → client (total) → category (hours). No transaction list — editing lives in "by client". */
+function monthTreeHTML(monthKey, rows){
+  const byClient = {};
+  rows.forEach(r => { (byClient[r.client] = byClient[r.client] || []).push(r); });
+  const clients = Object.keys(byClient).sort((a,b) => sumHours(byClient[b]) - sumHours(byClient[a]));
+  return `<div class="tree">${clients.map(c => {
+    const key = monthKey + "\u0000" + c;
+    const open = !!state.openGroups[key];
+    const byCat = {};
+    byClient[c].forEach(r => { const lbl = recLabel(r); byCat[lbl] = (byCat[lbl] || 0) + r.hours; });
+    const cats = Object.keys(byCat).sort((a,b) => byCat[b] - byCat[a]);
+    return `<button type="button" class="tree-client" data-group="${esc(key)}" aria-expanded="${open}">
+        <span class="caret">▶</span>
+        <span class="tn">${esc(c)}</span>
+        <span class="th">${fmtHours(sumHours(byClient[c]))} ${esc(t().hoursShort)}</span>
+      </button>
+      <div class="tree-cats ${open ? "" : "hidden"}">${cats.map(l => `<div class="bd-row">
+        <span class="bn">${esc(l)}</span>
+        <span class="bh">${fmtHours(byCat[l])} ${esc(t().hoursShort)}</span>
+      </div>`).join("")}</div>`;
+  }).join("")}</div>`;
+}
 function renderDash(){
   const recs = filteredRecords();
 
@@ -1934,6 +1982,7 @@ function renderDash(){
     const open = !!state.openGroups[k];
     const name = mode === "client" ? k : mode === "cat" ? catLabel(k) : periodLabel(k);
     const count = rows.length + " " + (rows.length === 1 ? t().entry : t().entries);
+    const inner = mode === "date" ? monthTreeHTML(k, rows) : breakdownHTML(rows) + rows.map(r => rowHTML(r, mode !== "client")).join("");
     return `<div class="group">
       <button type="button" class="group-head" data-group="${esc(k)}" aria-expanded="${open}">
         <span class="caret">▶</span>
@@ -1941,7 +1990,7 @@ function renderDash(){
         <span class="gmeta">${esc(count)}</span>
         <span class="ghours">${fmtHours(sum)} ${esc(t().hoursShort)}</span>
       </button>
-      <div class="rows ${open ? "" : "hidden"}">${breakdownHTML(rows)}${rows.map(r => rowHTML(r, mode !== "client")).join("")}</div>
+      <div class="rows ${open ? "" : "hidden"}">${inner}</div>
     </div>`;
   }).join("");
 }
