@@ -597,7 +597,7 @@
                           "14": "{{formatDate(now; \"DD/MM/YYYY HH:mm\"; \"Asia/Jerusalem\")}}"
                         },
                         "sheetId": "DB of Hours Reported",
-                        "rowNumber": "{{25.__ROW_NUMBER__}}",
+                        "rowNumber": "{{25.`__ROW_NUMBER__`}}",
                         "spreadsheetId": "/1O77TyQIcMlOsfLCHLMf0395PajvDkkaIsgCc-7KmAVY",
                         "includesHeaders": true,
                         "useColumnHeaders": false,
@@ -1103,7 +1103,7 @@
                   "14": "{{formatDate(now; \"DD/MM/YYYY HH:mm\"; \"Asia/Jerusalem\")}}"
                 },
                 "sheetId": "DB of Hours Reported",
-                "rowNumber": "{{30.__ROW_NUMBER__}}",
+                "rowNumber": "{{30.`__ROW_NUMBER__`}}",
                 "spreadsheetId": "/1O77TyQIcMlOsfLCHLMf0395PajvDkkaIsgCc-7KmAVY",
                 "includesHeaders": true,
                 "useColumnHeaders": false,
