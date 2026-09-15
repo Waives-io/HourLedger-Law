@@ -97,6 +97,10 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.90);backdro
 main{padding-top:18px}
 .card{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:20px 18px;margin-bottom:16px}
 .card-title{display:flex;align-items:center;gap:10px;margin:0 0 4px;font-size:19px;font-weight:700}
+.entry-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.entry-head .card-title{margin:0}
+.entry-date{flex:none;position:relative}
+.entry-date .err{position:absolute;inset-inline-end:0;top:100%;white-space:nowrap}
 .card-title::before{content:"";width:4px;height:18px;border-radius:2px;background:var(--gold);flex:none}
 .card-sub{margin:0 0 18px;font-size:13.5px;color:var(--ink-soft)}
 
@@ -121,6 +125,27 @@ input[type="email"].control,input[type="password"].control{direction:ltr;text-al
 .pw-toggle:hover{color:var(--navy);background:var(--surface-2)}
 .pw-toggle svg{width:20px;height:20px}
 .pw-toggle .eye-off{display:none}
+/* date picker */
+.dp-hidden{display:none !important}
+.dp-btn{text-align:start;font-variant-numeric:tabular-nums;cursor:pointer;position:relative;padding-inline-end:38px}
+.dp-btn::after{content:"";position:absolute;inset-inline-end:12px;top:50%;width:16px;height:16px;transform:translateY(-50%);background:no-repeat center/contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237C96B5' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4'/%3E%3C/svg%3E")}
+.dp-btn.dp-empty{color:var(--ink-faint);font-weight:500}
+.entry-date .dp-btn{padding:8px 34px 8px 12px;font-size:14px;font-weight:700;width:auto;min-width:130px}
+.range-inputs .dp-btn{padding:9px 34px 9px 10px;font-size:13.5px}
+.dp-pop{position:absolute;z-index:60;top:calc(100% + 6px);inset-inline-start:0;width:280px;background:var(--white);border:1px solid var(--line-strong);border-radius:var(--r-md);box-shadow:var(--shadow-lg);padding:10px}
+.entry-date .dp-pop{inset-inline-start:auto;inset-inline-end:0}
+.dp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dp-title{font-weight:800;font-size:14.5px}
+.dp-nav{border:1px solid var(--line-strong);background:var(--white);border-radius:var(--r-sm);width:32px;height:32px;font-size:18px;color:var(--navy)}
+.dp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dp-dow{text-align:center;font-size:11px;font-weight:700;color:var(--ink-faint);padding:4px 0}
+.dp-cell{border:0;background:transparent;border-radius:var(--r-sm);height:34px;font-size:13.5px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.dp-cell:hover{background:var(--surface-2)}
+.dp-blank{pointer-events:none}
+.dp-today{box-shadow:inset 0 0 0 1px var(--gold)}
+.dp-sel{background:var(--navy) !important;color:var(--white)}
+.dp-todaybtn{margin-top:8px;width:100%;border:0;background:var(--gold-soft);border-radius:var(--r-sm);padding:8px;font-weight:700;font-size:13px;color:var(--navy)}
+.field{position:relative}
 .pw-toggle[aria-pressed="true"] .eye-on{display:none}
 .pw-toggle[aria-pressed="true"] .eye-off{display:block}
 
@@ -240,6 +265,15 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .tree-client .tn{flex:1;min-width:0;font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tree-client .th{font-weight:800;font-variant-numeric:tabular-nums;color:var(--navy);flex:none}
 .tree-cats{padding:6px 14px 8px 14px;padding-inline-start:36px;background:var(--gold-soft);border-bottom:1px solid var(--line)}
+.tree-client .tm{font-size:12px;color:var(--ink-faint);font-weight:600;flex:none}
+.tree-lines{background:var(--surface);border-bottom:1px solid var(--line)}
+.tline{display:flex;align-items:center;gap:8px;padding:8px 14px;padding-inline-start:36px;border-bottom:1px solid var(--line);font-size:13.5px}
+.tline:last-child{border-bottom:0}
+.tline .tdate{font-weight:700;font-variant-numeric:tabular-nums;flex:none}
+.tline .tcat{color:var(--ink-soft);font-weight:600;flex:none;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tline .tnote{flex:1;min-width:0;color:var(--ink-faint);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tline .thours{font-weight:800;font-variant-numeric:tabular-nums;color:var(--navy);flex:none}
+.tline .redit{padding:5px 9px;font-size:12px}
 
 /* ===== Settings lists ===== */
 .list{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;margin-bottom:12px;max-height:320px;overflow-y:auto}
@@ -279,8 +313,9 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .modal-head h2{margin:0;font-size:19px;font-weight:700}
 .modal-close{border:0;background:var(--surface-2);border-radius:var(--r-pill);width:34px;height:34px;font-size:18px;font-weight:700;color:var(--ink-soft)}
-.modal-actions{display:flex;gap:10px;margin-top:20px}
-.modal-actions .btn{flex:1}
+.modal-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.modal-actions .btn{flex:1 1 calc(50% - 5px);min-width:0;padding-inline:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card{overflow:hidden}
 
 /* ===== Toast ===== */
 .toast{position:fixed;inset-inline:0;bottom:calc(96px + env(safe-area-inset-bottom));z-index:70;display:flex;justify-content:center;pointer-events:none}
@@ -431,8 +466,10 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 
   <section id="viewEntry">
     <div class="card">
-      <h1 class="card-title" data-i18n="entryTitle">דיווח שעות</h1>
-      <p class="card-sub" data-i18n="entrySub">מילוי מהיר של שעות חיוב ללקוח</p>
+      <div class="entry-head">
+        <h1 class="card-title" data-i18n="entryTitle">דיווח שעות</h1>
+        <div class="entry-date" id="entryDateSlot"></div>
+      </div>
       <div id="entryForm"></div>
       <button type="button" class="btn btn-primary btn-block" id="saveBtn" data-i18n="save">שמירת דיווח</button>
     </div>
@@ -514,7 +551,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <div class="kv"><span class="k" data-i18n="kPending">ממתין לשליחה</span><span class="v" id="kvPending">0</span></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="retryBtn" data-i18n="retrySync">שליחה חוזרת</button>
-        <button type="button" class="btn btn-ghost" id="resyncBtn" data-i18n="resyncAll">שליחת כל הדיווחים לגיליון</button>
+        <button type="button" class="btn btn-ghost" id="resyncBtn" data-i18n="resyncAll">שליחה מלאה לגיליון</button>
         <button type="button" class="btn btn-ghost hidden" id="importLocalBtn" data-i18n="importLocal">ייבוא דיווחים מהמכשיר</button>
         <button type="button" class="btn btn-ghost hidden" id="lockBtn" data-i18n="lock">נעילה</button>
         <button type="button" class="btn btn-danger" id="logoutBtn" data-i18n="logout">התנתקות</button>
@@ -666,7 +703,7 @@ const I18N = {
     errNotConfirmed:"האימייל עדיין לא אומת — יש ללחוץ על הקישור במייל", errCloud:"שגיאת תקשורת — נסו שוב",
     errNoCloudSession:"יש להיכנס עם סיסמה", errRate:"יותר מדי ניסיונות — נסו שוב בעוד כמה דקות",
     lock:"נעילה", signOutDevice:"התנתקות מהמכשיר", confirmSignOut:"להתנתק מהמכשיר הזה? בכניסה הבאה יידרשו מייל וסיסמה, וקוד הכניסה יימחק. כדי לצאת ולחזור עם קוד — השתמשו ב\"נעילה\".",
-    resyncAll:"שליחת כל הדיווחים לגיליון", resyncConfirm:"לשלוח את כל {n} הדיווחים לגיליון? שורות קיימות יעודכנו, חסרות יתווספו.", resyncQueued:"נשלחים לגיליון:", errNoHook:"אין כתובת סנכרון — יש להזין webhook",
+    resyncAll:"שליחה מלאה לגיליון", resyncConfirm:"לשלוח את כל {n} הדיווחים לגיליון? שורות קיימות יעודכנו, חסרות יתווספו.", resyncQueued:"נשלחים לגיליון:", errNoHook:"אין כתובת סנכרון — יש להזין webhook",
     hookLabel:"כתובת ה-webhook של המשרד (Make)", hookSave:"שמירה", hookSaved:"כתובת הסנכרון נשמרה", hookCleared:"הסנכרון כובה",
     hookHint:"כל משרד מקבל תרחיש Make משלו. ריק = הדיווחים נשמרים בלי סנכרון לגיליון", errHookUrl:"הכתובת חייבת להתחיל ב-https://hook.", kCloud:"חשבון ענן", cloudOn:"מחובר", cloudOff:"במכשיר בלבד",
     setupNoteCloud:"החשבון נשמר בענן — אפשר להיכנס מכל מכשיר. אחרי הפתיחה מזינים את רשימת הלקוחות",
@@ -730,6 +767,7 @@ const I18N = {
     syncOn:"פעיל", syncOff:"לא מוגדר", retrySync:"שליחה חוזרת", logout:"התנתקות",
     pending:"ממתין לסנכרון", sent:"נשלח לסנכרון", allSent:"הכול סונכרן",
     months:["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"],
+    dow:["א","ב","ג","ד","ה","ו","ש"], today:"היום", pickDate:"בחירת תאריך",
     quarter:"רבעון",
     csv:{date:"תאריך",client:"לקוח",cats:"קטגוריות",hours:"שעות",notes:"הערות"}
   },
@@ -750,7 +788,7 @@ const I18N = {
     errNotConfirmed:"Email not confirmed yet — click the link in the email", errCloud:"Connection error — try again",
     errNoCloudSession:"Please sign in with your password", errRate:"Too many attempts — try again in a few minutes",
     lock:"Lock", signOutDevice:"Sign out of this device", confirmSignOut:"Sign out of this device? Next time you'll need email and password, and the access code is removed. To leave and come back with the code, use \"Lock\".",
-    resyncAll:"Send all entries to the sheet", resyncConfirm:"Send all {n} entries to the sheet? Existing rows are updated, missing ones added.", resyncQueued:"Sending to the sheet:", errNoHook:"No sync address — enter a webhook first",
+    resyncAll:"Full resend to sheet", resyncConfirm:"Send all {n} entries to the sheet? Existing rows are updated, missing ones added.", resyncQueued:"Sending to the sheet:", errNoHook:"No sync address — enter a webhook first",
     hookLabel:"Office webhook URL (Make)", hookSave:"Save", hookSaved:"Sync address saved", hookCleared:"Sync turned off",
     hookHint:"Each office has its own Make scenario. Empty = entries are kept without sheet sync", errHookUrl:"The address must start with https://hook.", kCloud:"Cloud account", cloudOn:"Connected", cloudOff:"Device only",
     setupNoteCloud:"Your account lives in the cloud — sign in from any device. Add your clients after setup",
@@ -814,6 +852,7 @@ const I18N = {
     syncOn:"Active", syncOff:"Not configured", retrySync:"Retry sync", logout:"Sign out",
     pending:"waiting to sync", sent:"Synced", allSent:"Everything synced",
     months:["January","February","March","April","May","June","July","August","September","October","November","December"],
+    dow:["S","M","T","W","T","F","S"], today:"Today", pickDate:"Pick a date",
     quarter:"Q",
     csv:{date:"Date",client:"Client",cats:"Activities",hours:"Hours",notes:"Notes"}
   }
@@ -1196,6 +1235,7 @@ function presetRange(name){
 function syncRangeUI(){
   $("#rangeFrom").value = state.rangeFrom;
   $("#rangeTo").value = state.rangeTo;
+  DP.refresh($("#rangeFrom")); DP.refresh($("#rangeTo"));
   document.querySelectorAll("[data-preset]").forEach(b => {
     const [f,to] = presetRange(b.dataset.preset);
     b.setAttribute("aria-pressed", !state.rangeCustom && f === state.rangeFrom && to === state.rangeTo);
@@ -1469,18 +1509,23 @@ window.addEventListener("online", flushOutbox);
 /* ============================================================
    Entry form component
    ============================================================ */
-function formHTML(p, mode){
+function dateFieldHTML(p, compact){
+  return compact
+    ? `<input type="date" id="${p}Date" class="control" data-f="date" aria-label="${esc(t().fDate)}"><span class="err" data-e="date"></span>`
+    : `<div class="field">
+    <label for="${p}Date">${esc(t().fDate)}</label>
+    <input type="date" id="${p}Date" class="control" data-f="date">
+    <span class="err" data-e="date"></span>
+  </div>`;
+}
+function formHTML(p, mode, dateSlot){
   const cats = state.categories.map((c,i) =>
     `<button type="button" class="chip" role="${mode==="single"?"radio":"checkbox"}" aria-checked="false" aria-pressed="false" data-cat="${esc(c.id)}" tabindex="${i===0?0:-1}">${esc(c[state.lang] || c.he || c.en)}</button>`
   ).join("");
   const linesLabel = mode === "single" ? t().fHours : t().fLines;
   const linesHint  = mode === "single" ? t().fHoursHint : t().fLinesHint;
   return `
-  <div class="field">
-    <label for="${p}Date">${esc(t().fDate)}</label>
-    <input type="date" id="${p}Date" class="control" data-f="date">
-    <span class="err" data-e="date"></span>
-  </div>
+  ${dateSlot ? "" : dateFieldHTML(p, false)}
 
   <div class="field combo">
     <label for="${p}Client">${esc(t().fClient)}</label>
@@ -1516,11 +1561,13 @@ function snapHours(v){
   return Math.min(24, Math.max(0.25, Math.round(v*4)/4));
 }
 
-function createForm(root, prefix, mode){
+function createForm(root, prefix, mode, dateSlot){
   mode = mode || "multi";
-  root.innerHTML = formHTML(prefix, mode);
+  root.innerHTML = formHTML(prefix, mode, dateSlot);
+  if(dateSlot) dateSlot.innerHTML = dateFieldHTML(prefix, true);
 
-  const dateEl  = $('[data-f="date"]', root);
+  const dateEl  = $('[data-f="date"]', dateSlot || root);
+  attachDatePicker(dateEl);
   const cliEl   = $('[data-f="client"]', root);
   const listEl  = $('.combo-list', root);
   const noteEl  = $('[data-note]', root);
@@ -1732,6 +1779,7 @@ function createForm(root, prefix, mode){
     root,
     setValue(v){
       dateEl.value = v.date || todayISO();
+      DP.refresh(dateEl);
       cliEl.value = v.client || "";
       notesEl.value = v.notes || "";
       Object.keys(hoursMap).forEach(k => delete hoursMap[k]);
@@ -1759,9 +1807,8 @@ function createForm(root, prefix, mode){
     validate(){
       const v = api.getValue();
       let ok = true;
-      root.querySelectorAll(".err").forEach(e => e.textContent = "");
-      root.querySelectorAll(".invalid").forEach(e => e.classList.remove("invalid"));
-      const fail = (key, el, msg) => { $(`[data-e="${key}"]`, root).textContent = msg; if(el) el.classList.add("invalid"); ok = false; };
+      [root, dateSlot].filter(Boolean).forEach(r => { r.querySelectorAll(".err").forEach(e => e.textContent = ""); r.querySelectorAll(".invalid").forEach(e => e.classList.remove("invalid")); });
+      const fail = (key, el, msg) => { $(`[data-e="${key}"]`, key === "date" && dateSlot ? dateSlot : root).textContent = msg; if(el) el.classList.add("invalid"); ok = false; };
       if(!v.date) fail("date", dateEl, t().errDate);
       if(!v.client) fail("client", cliEl, t().errClient);
       if(!v.lines.length) fail("cats", null, t().errCats);
@@ -1781,7 +1828,7 @@ function createForm(root, prefix, mode){
     },
     reset(){
       api.setValue({ date: todayISO(), client:"", notes:"", lines:[] });
-      root.querySelectorAll(".err").forEach(e => e.textContent = "");
+      [root, dateSlot].filter(Boolean).forEach(r => r.querySelectorAll(".err").forEach(e => e.textContent = ""));
       noteEl.classList.add("hidden");
       addedClient = "";
       if(document.activeElement) document.activeElement.blur();
@@ -1906,25 +1953,31 @@ function renderRecent(){
 }
 const sumHours = rows => rows.reduce((s,r) => s + r.hours, 0);
 /* Sub-totals shown inside an open group: client → per period, date / category → per client */
-/* client → per category · category → per client and date */
-function breakdownHTML(rows){
-  const mode = state.dashMode;
-  const keyOf = mode === "client" ? (r => recLabel(r)) : (r => r.client + "\u0000" + r.date);
-  const sub = {};
-  rows.forEach(r => { sub[keyOf(r)] = (sub[keyOf(r)] || 0) + r.hours; });
-  const keys = Object.keys(sub);
-  if(keys.length < 2) return "";
-  if(mode === "client") keys.sort((a,b) => sub[b] - sub[a]);
-  else keys.sort((a,b) => a.localeCompare(b));
-  const title = mode === "client" ? t().bdByCategory : t().bdByClientDate;
-  const cell = k => {
-    if(mode === "cat"){ const [c,d] = k.split("\u0000"); return `<span class="bn">${esc(c)}</span><span class="bd">${esc(fmtDate(d))}</span>`; }
-    return `<span class="bn">${esc(k)}</span>`;
-  };
-  return `<div class="breakdown"><div class="bd-title">${esc(title)}</div>${keys.map(k => `<div class="bd-row">
-      ${cell(k)}
-      <span class="bh">${fmtHours(sub[k])} ${esc(t().hoursShort)}</span>
-    </div>`).join("")}</div>`;
+/* inside a group: client → categories → date lines · category → clients → date lines */
+function subTreeHTML(groupKey, rows, mode){
+  const keyOf = mode === "client" ? (r => recLabel(r)) : (r => r.client);
+  const by = {};
+  rows.forEach(r => { (by[keyOf(r)] = by[keyOf(r)] || []).push(r); });
+  const subs = Object.keys(by).sort(mode === "client" ? (a,b) => sumHours(by[b]) - sumHours(by[a]) : (a,b) => a.localeCompare(b, "he"));
+  return `<div class="tree">${subs.map(name => {
+    const key = groupKey + "\u0000" + name;
+    const open = !!state.openGroups[key];
+    const lines = by[name].slice().sort((a,b) => a.date.localeCompare(b.date));
+    return `<button type="button" class="tree-client" data-group="${esc(key)}" aria-expanded="${open}">
+        <span class="caret">▶</span>
+        <span class="tn">${esc(name)}</span>
+        <span class="tm">${lines.length}</span>
+        <span class="th">${fmtHours(sumHours(by[name]))} ${esc(t().hoursShort)}</span>
+      </button>
+      <div class="tree-lines ${open ? "" : "hidden"}">${lines.map(r => `<div class="tline">
+        <span class="tdate">${esc(fmtDate(r.date))}</span>
+        ${mode === "client" ? "" : `<span class="tcat">${esc(recLabel(r))}</span>`}
+        ${r.notes ? `<span class="tnote">${esc(r.notes)}</span>` : `<span class="tnote"></span>`}
+        <span class="thours">${fmtHours(r.hours)}</span>
+        <button type="button" class="redit" data-edit="${r.id}">${esc(t().edit)}</button>
+        <button type="button" class="redit rdel" data-del="${r.id}" aria-label="${esc(t().delete)}">✕</button>
+      </div>`).join("")}</div>`;
+  }).join("")}</div>`;
 }
 function renderDash(){
   const recs = filteredRecords();
@@ -1934,7 +1987,9 @@ function renderDash(){
     const key = mode === "client" ? r.client : r.category;
     (groups[key] = groups[key] || []).push(r);
   });
-  const keys = Object.keys(groups).sort((a,b) => sumHours(groups[b]) - sumHours(groups[a]));
+  const keys = Object.keys(groups).sort(mode === "client"
+    ? (a,b) => a.localeCompare(b, "he")
+    : (a,b) => sumHours(groups[b]) - sumHours(groups[a]));
 
   const body = $("#dashBody");
   if(!keys.length){ body.innerHTML = `<div class="empty">${esc(t().noData)}</div>`; return; }
@@ -1945,7 +2000,7 @@ function renderDash(){
     const open = !!state.openGroups[k];
     const name = mode === "client" ? k : catLabel(k);
     const count = rows.length + " " + (rows.length === 1 ? t().entry : t().entries);
-    const inner = breakdownHTML(rows) + rows.map(r => rowHTML(r, mode !== "client")).join("");
+    const inner = subTreeHTML(k, rows, mode);
     return `<div class="group">
       <button type="button" class="group-head" data-group="${esc(k)}" aria-expanded="${open}">
         <span class="caret">▶</span>
@@ -2046,7 +2101,7 @@ function removeCat(id){
 }
 function rebuildForms(){
   const keep = entryForm ? entryForm.getValue() : null;
-  entryForm = createForm($("#entryForm"), "e", "multi");
+  entryForm = createForm($("#entryForm"), "e", "multi", $("#entryDateSlot"));
   if(keep) entryForm.setValue(keep);
 }
 
@@ -2074,6 +2129,7 @@ function applyLang(){
   }
   $("#toForgot").classList.toggle("hidden", !cloudMode());
   if(state.cloud) $("#logoutBtn").textContent = L.signOutDevice;
+  DP.refreshAll();
   $("#suFirmField").classList.toggle("hidden", !!FIRM.name);
   $("#firmName").textContent = FIRM.name || "";
   $("#firmName").classList.toggle("hidden", !FIRM.name);
@@ -2322,6 +2378,76 @@ document.addEventListener("click", e => {
   if(dk){ removeCat(dk.dataset.delCat); return; }
 });
 
+/* ---------- Date picker: Sunday-first, Hebrew/English, keeps the real <input type="date"> as the value holder ---------- */
+const DP = {
+  open: null,
+  pad: n => String(n).padStart(2, "0"),
+  iso: (y, m, d) => `${y}-${DP.pad(m + 1)}-${DP.pad(d)}`,
+  label(el){
+    const b = el._dpBtn; if(!b) return;
+    b.textContent = el.value ? fmtDate(el.value) : (el.dataset.placeholder || t().pickDate);
+    b.classList.toggle("dp-empty", !el.value);
+  },
+  refresh(el){ if(el && el._dpBtn) DP.label(el); },
+  refreshAll(){ document.querySelectorAll("input[type=date]").forEach(DP.label); },
+  close(){ if(DP.open){ DP.open.remove(); DP.open = null; } },
+  show(el){
+    DP.close();
+    const base = el.value ? new Date(el.value + "T00:00:00") : new Date();
+    let y = base.getFullYear(), m = base.getMonth();
+    const pop = document.createElement("div");
+    pop.className = "dp-pop";
+    pop.setAttribute("role", "dialog");
+    const render = () => {
+      const L = t();
+      const first = new Date(y, m, 1).getDay();          // 0 = Sunday, the first column
+      const days = new Date(y, m + 1, 0).getDate();
+      const today = todayISO();
+      let cells = "";
+      for(let i = 0; i < first; i++) cells += `<span class="dp-cell dp-blank"></span>`;
+      for(let d = 1; d <= days; d++){
+        const v = DP.iso(y, m, d);
+        cells += `<button type="button" class="dp-cell${v === el.value ? " dp-sel" : ""}${v === today ? " dp-today" : ""}" data-v="${v}">${d}</button>`;
+      }
+      pop.innerHTML = `<div class="dp-head">
+          <button type="button" class="dp-nav" data-nav="-1" aria-label="prev">‹</button>
+          <span class="dp-title">${esc(L.months[m])} ${y}</span>
+          <button type="button" class="dp-nav" data-nav="1" aria-label="next">›</button>
+        </div>
+        <div class="dp-grid">${L.dow.map(d => `<span class="dp-dow">${esc(d)}</span>`).join("")}${cells}</div>
+        <button type="button" class="dp-todaybtn" data-v="${today}">${esc(L.today)}</button>`;
+    };
+    pop.addEventListener("click", e => {
+      const nav = e.target.closest("[data-nav]");
+      if(nav){ m += +nav.dataset.nav; if(m < 0){ m = 11; y--; } if(m > 11){ m = 0; y++; } render(); return; }
+      const c = e.target.closest("[data-v]");
+      if(c){
+        el.value = c.dataset.v;
+        DP.label(el);
+        el.dispatchEvent(new Event("change", { bubbles:true }));
+        DP.close();
+      }
+    });
+    render();
+    el._dpBtn.insertAdjacentElement("afterend", pop);
+    DP.open = pop;
+  }
+};
+function attachDatePicker(el){
+  if(!el || el._dpBtn) return;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "control dp-btn" + (el.classList.contains("dp-small") ? " dp-small" : "");
+  btn.setAttribute("aria-label", el.getAttribute("aria-label") || t().fDate);
+  el._dpBtn = btn;
+  el.classList.add("dp-hidden");
+  el.insertAdjacentElement("afterend", btn);
+  btn.addEventListener("click", e => { e.stopPropagation(); if(DP.open && DP.open.previousElementSibling === btn) DP.close(); else DP.show(el); });
+  DP.label(el);
+}
+document.addEventListener("click", e => { if(DP.open && !e.target.closest(".dp-pop")) DP.close(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape") DP.close(); });
+
 /* Eye toggle for every password / access-code input */
 const EYE_SVG = `<svg class="eye-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
 <svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"/><path d="M9.9 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1"/><path d="M6.6 6.6C3.9 8.4 2 12 2 12s3.5 7 10 7a9.8 9.8 0 0 0 4.4-1"/></svg>`;
@@ -2349,6 +2475,7 @@ function installPasswordToggles(){
 }
 
 /* boot */
+attachDatePicker($("#rangeFrom")); attachDatePicker($("#rangeTo"));
 if("serviceWorker" in navigator && location.protocol === "https:"){ navigator.serviceWorker.register("sw.js").catch(() => {}); }
 installPasswordToggles();
 $("#logoHead").src = LOGO_SRC;
