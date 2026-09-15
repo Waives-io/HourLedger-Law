@@ -473,7 +473,6 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 
       <div class="toolbar">
         <input type="search" class="control" id="dashSearch" placeholder="חיפוש לקוח…" data-i18n-ph="searchPh">
-        <button type="button" class="btn btn-ghost" id="exportBtn" data-i18n="export">ייצוא CSV</button>
       </div>
 
       <div id="dashBody"></div>
@@ -2239,7 +2238,6 @@ $("#rangeTo").addEventListener("change", e => setRange(state.rangeFrom, e.target
 $("#rangeClear").addEventListener("click", () => setRange("",""));
 
 $("#dashSearch").addEventListener("input", e => { state.search = e.target.value; renderDash(); });
-$("#exportBtn").addEventListener("click", exportCSV);
 
 $("#addClient").addEventListener("click", addClient);
 $("#newClient").addEventListener("keydown", e => { if(e.key === "Enter" && (e.ctrlKey || e.metaKey)) addClient(); });
