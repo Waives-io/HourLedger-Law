@@ -520,6 +520,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <div class="kv"><span class="k" data-i18n="kPending">ממתין לשליחה</span><span class="v" id="kvPending">0</span></div>
       <div class="modal-actions">
         <button type="button" class="btn btn-ghost" id="retryBtn" data-i18n="retrySync">שליחה חוזרת</button>
+        <button type="button" class="btn btn-ghost" id="resyncBtn" data-i18n="resyncAll">שליחת כל הדיווחים לגיליון</button>
         <button type="button" class="btn btn-ghost hidden" id="importLocalBtn" data-i18n="importLocal">ייבוא דיווחים מהמכשיר</button>
         <button type="button" class="btn btn-ghost hidden" id="lockBtn" data-i18n="lock">נעילה</button>
         <button type="button" class="btn btn-danger" id="logoutBtn" data-i18n="logout">התנתקות</button>
@@ -671,6 +672,7 @@ const I18N = {
     errNotConfirmed:"האימייל עדיין לא אומת — יש ללחוץ על הקישור במייל", errCloud:"שגיאת תקשורת — נסו שוב",
     errNoCloudSession:"יש להיכנס עם סיסמה", errRate:"יותר מדי ניסיונות — נסו שוב בעוד כמה דקות",
     lock:"נעילה", signOutDevice:"התנתקות מהמכשיר",
+    resyncAll:"שליחת כל הדיווחים לגיליון", resyncConfirm:"לשלוח את כל {n} הדיווחים לגיליון? שורות קיימות יעודכנו, חסרות יתווספו.", resyncQueued:"נשלחים לגיליון:", errNoHook:"אין כתובת סנכרון — יש להזין webhook",
     hookLabel:"כתובת ה-webhook של המשרד (Make)", hookSave:"שמירה", hookSaved:"כתובת הסנכרון נשמרה", hookCleared:"הסנכרון כובה",
     hookHint:"כל משרד מקבל תרחיש Make משלו. ריק = הדיווחים נשמרים בלי סנכרון לגיליון", errHookUrl:"הכתובת חייבת להתחיל ב-https://hook.", kCloud:"חשבון ענן", cloudOn:"מחובר", cloudOff:"במכשיר בלבד",
     setupNoteCloud:"החשבון נשמר בענן — אפשר להיכנס מכל מכשיר. אחרי הפתיחה מזינים את רשימת הלקוחות",
@@ -754,6 +756,7 @@ const I18N = {
     errNotConfirmed:"Email not confirmed yet — click the link in the email", errCloud:"Connection error — try again",
     errNoCloudSession:"Please sign in with your password", errRate:"Too many attempts — try again in a few minutes",
     lock:"Lock", signOutDevice:"Sign out of this device",
+    resyncAll:"Send all entries to the sheet", resyncConfirm:"Send all {n} entries to the sheet? Existing rows are updated, missing ones added.", resyncQueued:"Sending to the sheet:", errNoHook:"No sync address — enter a webhook first",
     hookLabel:"Office webhook URL (Make)", hookSave:"Save", hookSaved:"Sync address saved", hookCleared:"Sync turned off",
     hookHint:"Each office has its own Make scenario. Empty = entries are kept without sheet sync", errHookUrl:"The address must start with https://hook.", kCloud:"Cloud account", cloudOn:"Connected", cloudOff:"Device only",
     setupNoteCloud:"Your account lives in the cloud — sign in from any device. Add your clients after setup",
@@ -1297,12 +1300,14 @@ async function pullCloud(){
   if(state.cloudOut.length) return false;
   const org = state.orgInfo.id;
   try{
-    const [c, k, r] = await Promise.all([
+    const [c, k, r, o] = await Promise.all([
       sb.from("clients").select("name").eq("org_id", org).order("name"),
       sb.from("categories").select("id,he,en,sort").eq("org_id", org).order("sort"),
-      sb.from("records").select("*").eq("org_id", org)
+      sb.from("records").select("*").eq("org_id", org),
+      sb.from("orgs").select("name,webhook").eq("id", org).maybeSingle()
     ]);
     if(c.error || k.error || r.error) throw (c.error || k.error || r.error);
+    if(o.data){ state.orgInfo.name = o.data.name; state.orgInfo.webhook = o.data.webhook || ""; upsertLocalAccount({ email: state.user, firm: o.data.name, webhook: o.data.webhook || "" }); }
     state.clients = c.data.map(x => x.name);
     if(k.data.length){
       state.categories = k.data.map(x => ({ id:x.id, he:x.he, en:x.en }));
@@ -2245,6 +2250,17 @@ $("#addCat").addEventListener("click", addCat);
 $("#newCat").addEventListener("keydown", e => { if(e.key === "Enter") addCat(); });
 $("#retryBtn").addEventListener("click", async () => { await flushCloud(); flushOutbox(); toast(state.outbox.length + state.cloudOut.length ? t().sent : t().allSent); });
 $("#lockBtn").addEventListener("click", logout);
+$("#resyncBtn").addEventListener("click", () => {
+  if(!orgCfg().webhook){ toast(t().errNoHook); return; }
+  const n = state.records.length;
+  if(!n || !confirm(t().resyncConfirm.replace("{n}", n))) return;
+  // "update" is an upsert in the Make flow: found → update the row, not found → add it
+  state.records.forEach(r => state.outbox.push(payloadFor(r, "update")));
+  store(K.out(state.org), state.outbox);
+  updateSyncUI();
+  flushOutbox();
+  toast(`${t().resyncQueued} ${n}`);
+});
 async function saveWebhook(){
   const url = $("#hookUrl").value.trim(), err = $("#hookErr");
   err.textContent = "";
