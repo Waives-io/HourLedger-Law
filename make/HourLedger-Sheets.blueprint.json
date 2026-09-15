@@ -128,6 +128,18 @@
               "parameters": {
                 "__IMTCONN__": 9848355
               },
+              "filter": {
+                "name": "action = create",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{5.action}}",
+                      "b": "create",
+                      "o": "text:equal"
+                    }
+                  ]
+                ]
+              },
               "mapper": {
                 "from": "share",
                 "mode": "select",
@@ -314,18 +326,6 @@
                     ]
                   }
                 ]
-              },
-              "filter": {
-                "name": "action = create",
-                "conditions": [
-                  [
-                    {
-                      "a": "{{5.action}}",
-                      "o": "text:equal",
-                      "b": "create"
-                    }
-                  ]
-                ]
               }
             }
           ]
@@ -339,13 +339,25 @@
               "parameters": {
                 "__IMTCONN__": 9848355
               },
+              "filter": {
+                "name": "action = update",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{5.action}}",
+                      "b": "update",
+                      "o": "text:equal"
+                    }
+                  ]
+                ]
+              },
               "mapper": {
                 "from": "share",
                 "limit": "1",
                 "filter": [
                   [
                     {
-                      "a": "6",
+                      "a": "G",
                       "b": "{{5.id}}",
                       "o": "text:equal"
                     }
@@ -368,25 +380,25 @@
                 "restore": {
                   "expect": {
                     "from": {
-                      "label": "Shared with me"
+                      "label": "Select from all"
+                    },
+                    "orderBy": {
+                      "mode": "chose"
                     },
                     "sheetId": {
+                      "mode": "chose",
                       "label": "DB of Hours Reported"
-                    },
-                    "spreadsheetId": {
-                      "path": [
-                        "שעות לחיוב עו\"ד אורן ויינברג"
-                      ]
-                    },
-                    "includesHeaders": {
-                      "label": "Yes"
-                    },
-                    "tableFirstRow": {
-                      "label": "A-Z"
                     },
                     "sortOrder": {
                       "mode": "chose",
                       "label": "Ascending"
+                    },
+                    "tableFirstRow": {
+                      "label": "A-Z"
+                    },
+                    "includesHeaders": {
+                      "mode": "chose",
+                      "label": "Yes"
                     },
                     "valueRenderOption": {
                       "mode": "chose",
@@ -395,16 +407,7 @@
                     "dateTimeRenderOption": {
                       "mode": "chose",
                       "label": "Formatted string"
-                    },
-                    "filter": [
-                      [
-                        {
-                          "a": {
-                            "label": "Submission ID (G)"
-                          }
-                        }
-                      ]
-                    ]
+                    }
                   },
                   "parameters": {
                     "__IMTCONN__": {
@@ -423,35 +426,264 @@
                     "label": "Connection",
                     "required": true
                   }
-                ]
-              },
-              "filter": {
-                "name": "action = update",
-                "conditions": [
-                  [
-                    {
-                      "a": "{{5.action}}",
-                      "o": "text:equal",
-                      "b": "update"
+                ],
+                "expect": [
+                  {
+                    "name": "from",
+                    "type": "select",
+                    "label": "Search Method",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "drive",
+                        "share"
+                      ]
                     }
-                  ]
+                  },
+                  {
+                    "name": "valueRenderOption",
+                    "type": "select",
+                    "label": "Value render option",
+                    "validate": {
+                      "enum": [
+                        "FORMATTED_VALUE",
+                        "UNFORMATTED_VALUE",
+                        "FORMULA"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "dateTimeRenderOption",
+                    "type": "select",
+                    "label": "Date and time render option",
+                    "validate": {
+                      "enum": [
+                        "SERIAL_NUMBER",
+                        "FORMATTED_STRING"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "limit",
+                    "type": "uinteger",
+                    "label": "Limit"
+                  },
+                  {
+                    "name": "spreadsheetId",
+                    "type": "text",
+                    "label": "Spreadsheet ID",
+                    "required": true
+                  },
+                  {
+                    "name": "sheetId",
+                    "type": "select",
+                    "label": "Sheet Name",
+                    "required": true
+                  },
+                  {
+                    "name": "includesHeaders",
+                    "type": "select",
+                    "label": "Table contains headers",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        true,
+                        false
+                      ]
+                    }
+                  },
+                  {
+                    "name": "tableFirstRow",
+                    "type": "select",
+                    "label": "Column range",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "A1:Z1",
+                        "A1:BZ1",
+                        "A1:CZ1",
+                        "A1:DZ1",
+                        "A1:MZ1",
+                        "A1:ZZ1",
+                        "A1:AZZ1",
+                        "A1:BZZ1",
+                        "A1:CZZ1",
+                        "A1:DZZ1",
+                        "A1:MZZ1",
+                        "A1:ZZZ1"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "filter",
+                    "type": "filter",
+                    "label": "Filter",
+                    "options": "rpc://google-sheets/2/rpcGetFilterKeys?includesHeaders=true"
+                  },
+                  {
+                    "name": "orderBy",
+                    "type": "select",
+                    "label": "Order by"
+                  },
+                  {
+                    "name": "sortOrder",
+                    "type": "select",
+                    "label": "Sort order",
+                    "validate": {
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ]
+                    }
+                  }
+                ],
+                "interface": [
+                  {
+                    "name": "__ROW_NUMBER__",
+                    "type": "number",
+                    "label": "Row number"
+                  },
+                  {
+                    "name": "__SPREADSHEET_ID__",
+                    "type": "text",
+                    "label": "Spreadsheet ID"
+                  },
+                  {
+                    "name": "__SHEET__",
+                    "type": "text",
+                    "label": "Sheet"
+                  },
+                  {
+                    "name": "0",
+                    "type": "text",
+                    "label": "תאריך לחיוב (A)"
+                  },
+                  {
+                    "name": "1",
+                    "type": "text",
+                    "label": "שם לקוח (B)"
+                  },
+                  {
+                    "name": "2",
+                    "type": "text",
+                    "label": "תעריף לשעה (לא כולל מע\"מ) (C)"
+                  },
+                  {
+                    "name": "3",
+                    "type": "text",
+                    "label": "על מה לחייב (D)"
+                  },
+                  {
+                    "name": "4",
+                    "type": "text",
+                    "label": "הערות (E)"
+                  },
+                  {
+                    "name": "5",
+                    "type": "text",
+                    "label": "שעות לדיווח (F)"
+                  },
+                  {
+                    "name": "6",
+                    "type": "text",
+                    "label": "Submission ID (G)"
+                  },
+                  {
+                    "name": "7",
+                    "type": "text",
+                    "label": "סה\"כ לחיוב  (לא כולל מעמ) (H)"
+                  },
+                  {
+                    "name": "8",
+                    "type": "text",
+                    "label": "מטבע (I)"
+                  },
+                  {
+                    "name": "9",
+                    "type": "text",
+                    "label": "סה\"כ לחיוב  (כולל מעמ) (J)"
+                  },
+                  {
+                    "name": "10",
+                    "type": "text",
+                    "label": "חודש חיוב (K)"
+                  },
+                  {
+                    "name": "11",
+                    "type": "text",
+                    "label": "groupId (L)"
+                  },
+                  {
+                    "name": "12",
+                    "type": "text",
+                    "label": "משתמש (M)"
+                  },
+                  {
+                    "name": "13",
+                    "type": "text",
+                    "label": "סטטוס (N)"
+                  },
+                  {
+                    "name": "14",
+                    "type": "text",
+                    "label": "עדכון אחרון (O)"
+                  },
+                  {
+                    "name": "15",
+                    "type": "text",
+                    "label": "(P)"
+                  },
+                  {
+                    "name": "16",
+                    "type": "text",
+                    "label": "(Q)"
+                  },
+                  {
+                    "name": "17",
+                    "type": "text",
+                    "label": "(R)"
+                  },
+                  {
+                    "name": "18",
+                    "type": "text",
+                    "label": "(S)"
+                  },
+                  {
+                    "name": "19",
+                    "type": "text",
+                    "label": "(T)"
+                  },
+                  {
+                    "name": "20",
+                    "type": "text",
+                    "label": "(U)"
+                  },
+                  {
+                    "name": "21",
+                    "type": "text",
+                    "label": "(V)"
+                  },
+                  {
+                    "name": "22",
+                    "type": "text",
+                    "label": "(W)"
+                  },
+                  {
+                    "name": "23",
+                    "type": "text",
+                    "label": "(X)"
+                  },
+                  {
+                    "name": "24",
+                    "type": "text",
+                    "label": "(Y)"
+                  },
+                  {
+                    "name": "25",
+                    "type": "text",
+                    "label": "(Z)"
+                  }
                 ]
-              }
-            },
-            {
-              "id": 21,
-              "module": "builtin:BasicAggregator",
-              "version": 1,
-              "parameters": {
-                "feeder": 20
-              },
-              "mapper": {},
-              "metadata": {
-                "designer": {
-                  "x": 900,
-                  "y": 0,
-                  "name": "איסוף תוצאות"
-                }
               }
             },
             {
@@ -461,119 +693,13 @@
               "mapper": null,
               "metadata": {
                 "designer": {
-                  "x": 1200,
+                  "x": 900,
                   "y": 0
                 }
               },
               "routes": [
                 {
                   "flow": [
-                    {
-                      "id": 25,
-                      "module": "google-sheets:filterRows",
-                      "version": 2,
-                      "parameters": {
-                        "__IMTCONN__": 9848355
-                      },
-                      "mapper": {
-                        "from": "share",
-                        "limit": "1",
-                        "filter": [
-                          [
-                            {
-                              "a": "6",
-                              "b": "{{5.id}}",
-                              "o": "text:equal"
-                            }
-                          ]
-                        ],
-                        "sheetId": "DB of Hours Reported",
-                        "sortOrder": "asc",
-                        "spreadsheetId": "/1O77TyQIcMlOsfLCHLMf0395PajvDkkaIsgCc-7KmAVY",
-                        "tableFirstRow": "A1:Z1",
-                        "includesHeaders": true,
-                        "valueRenderOption": "FORMATTED_VALUE",
-                        "dateTimeRenderOption": "FORMATTED_STRING"
-                      },
-                      "metadata": {
-                        "designer": {
-                          "x": 1500,
-                          "y": -120,
-                          "name": "איתור השורה"
-                        },
-                        "restore": {
-                          "expect": {
-                            "from": {
-                              "label": "Shared with me"
-                            },
-                            "sheetId": {
-                              "label": "DB of Hours Reported"
-                            },
-                            "spreadsheetId": {
-                              "path": [
-                                "שעות לחיוב עו\"ד אורן ויינברג"
-                              ]
-                            },
-                            "includesHeaders": {
-                              "label": "Yes"
-                            },
-                            "tableFirstRow": {
-                              "label": "A-Z"
-                            },
-                            "sortOrder": {
-                              "mode": "chose",
-                              "label": "Ascending"
-                            },
-                            "valueRenderOption": {
-                              "mode": "chose",
-                              "label": "Formatted value"
-                            },
-                            "dateTimeRenderOption": {
-                              "mode": "chose",
-                              "label": "Formatted string"
-                            },
-                            "filter": [
-                              [
-                                {
-                                  "a": {
-                                    "label": "Submission ID (G)"
-                                  }
-                                }
-                              ]
-                            ]
-                          },
-                          "parameters": {
-                            "__IMTCONN__": {
-                              "data": {
-                                "scoped": "true",
-                                "connection": "google"
-                              },
-                              "label": "Pino's Google connection (p1n0f2p1c@gmail.com)"
-                            }
-                          }
-                        },
-                        "parameters": [
-                          {
-                            "name": "__IMTCONN__",
-                            "type": "account:google",
-                            "label": "Connection",
-                            "required": true
-                          }
-                        ]
-                      },
-                      "filter": {
-                        "name": "השורה נמצאה",
-                        "conditions": [
-                          [
-                            {
-                              "a": "{{length(21.array)}}",
-                              "o": "number:greater",
-                              "b": "0"
-                            }
-                          ]
-                        ]
-                      }
-                    },
                     {
                       "id": 23,
                       "module": "google-sheets:updateRow",
@@ -597,7 +723,7 @@
                           "14": "{{formatDate(now; \"DD/MM/YYYY HH:mm\"; \"Asia/Jerusalem\")}}"
                         },
                         "sheetId": "DB of Hours Reported",
-                        "rowNumber": "{{25.`__ROW_NUMBER__`}}",
+                        "rowNumber": "{{20.`__ROW_NUMBER__`}}",
                         "spreadsheetId": "/1O77TyQIcMlOsfLCHLMf0395PajvDkkaIsgCc-7KmAVY",
                         "includesHeaders": true,
                         "useColumnHeaders": false,
@@ -605,7 +731,7 @@
                       },
                       "metadata": {
                         "designer": {
-                          "x": 1800,
+                          "x": 1200,
                           "y": -120,
                           "name": "עדכון השורה"
                         },
@@ -656,6 +782,86 @@
                         ],
                         "expect": [
                           {
+                            "name": "mode",
+                            "type": "select",
+                            "label": "Search Method",
+                            "required": true,
+                            "validate": {
+                              "enum": [
+                                "select",
+                                "fromAll",
+                                "map"
+                              ]
+                            }
+                          },
+                          {
+                            "name": "valueInputOption",
+                            "type": "select",
+                            "label": "Value input option",
+                            "required": true,
+                            "validate": {
+                              "enum": [
+                                "USER_ENTERED",
+                                "RAW"
+                              ]
+                            }
+                          },
+                          {
+                            "name": "from",
+                            "type": "select",
+                            "label": "Drive",
+                            "required": true,
+                            "validate": {
+                              "enum": [
+                                "drive",
+                                "share",
+                                "team"
+                              ]
+                            }
+                          },
+                          {
+                            "name": "spreadsheetId",
+                            "type": "file",
+                            "label": "Spreadsheet Name",
+                            "required": true
+                          },
+                          {
+                            "name": "sheetId",
+                            "type": "select",
+                            "label": "Sheet Name",
+                            "required": true
+                          },
+                          {
+                            "name": "rowNumber",
+                            "type": "uinteger",
+                            "label": "Row number",
+                            "required": true
+                          },
+                          {
+                            "name": "includesHeaders",
+                            "type": "select",
+                            "label": "Table contains headers",
+                            "required": true,
+                            "validate": {
+                              "enum": [
+                                true,
+                                false
+                              ]
+                            }
+                          },
+                          {
+                            "name": "useColumnHeaders",
+                            "type": "select",
+                            "label": "Use column headers as IDs of the columns",
+                            "required": true,
+                            "validate": {
+                              "enum": [
+                                true,
+                                false
+                              ]
+                            }
+                          },
+                          {
                             "name": "values",
                             "spec": [
                               {
@@ -696,7 +902,7 @@
                               {
                                 "name": "7",
                                 "type": "text",
-                                "label": "סה\"כ לחיוב\n (לא כולל מעמ) (H)"
+                                "label": "סה\"כ לחיוב  (לא כולל מעמ) (H)"
                               },
                               {
                                 "name": "8",
@@ -706,7 +912,7 @@
                               {
                                 "name": "9",
                                 "type": "text",
-                                "label": "סה\"כ לחיוב\n (כולל מעמ) (J)"
+                                "label": "סה\"כ לחיוב  (כולל מעמ) (J)"
                               },
                               {
                                 "name": "10",
@@ -732,6 +938,71 @@
                                 "name": "14",
                                 "type": "text",
                                 "label": "עדכון אחרון (O)"
+                              },
+                              {
+                                "name": "15",
+                                "type": "text",
+                                "label": "(P)"
+                              },
+                              {
+                                "name": "16",
+                                "type": "text",
+                                "label": "(Q)"
+                              },
+                              {
+                                "name": "17",
+                                "type": "text",
+                                "label": "(R)"
+                              },
+                              {
+                                "name": "18",
+                                "type": "text",
+                                "label": "(S)"
+                              },
+                              {
+                                "name": "19",
+                                "type": "text",
+                                "label": "(T)"
+                              },
+                              {
+                                "name": "20",
+                                "type": "text",
+                                "label": "(U)"
+                              },
+                              {
+                                "name": "21",
+                                "type": "text",
+                                "label": "(V)"
+                              },
+                              {
+                                "name": "22",
+                                "type": "text",
+                                "label": "(W)"
+                              },
+                              {
+                                "name": "23",
+                                "type": "text",
+                                "label": "(X)"
+                              },
+                              {
+                                "name": "24",
+                                "type": "text",
+                                "label": "(Y)"
+                              },
+                              {
+                                "name": "25",
+                                "type": "text",
+                                "label": "(Z)"
+                              },
+                              {
+                                "name": "26",
+                                "type": "text",
+                                "label": "(AA)"
+                              },
+                              {
+                                "name": "27",
+                                "type": "text",
+                                "label": "(AB)"
                               }
                             ],
                             "type": "collection",
@@ -746,9 +1017,9 @@
                                   "הערות",
                                   "שעות לדיווח",
                                   "Submission ID",
-                                  "סה\"כ לחיוב\n (לא כולל מעמ)",
+                                  "סה\"כ לחיוב  (לא כולל מעמ)",
                                   "מטבע",
-                                  "סה\"כ לחיוב\n (כולל מעמ)",
+                                  "סה\"כ לחיוב  (כולל מעמ)",
                                   "חודש חיוב",
                                   "groupId",
                                   "משתמש",
@@ -758,6 +1029,18 @@
                               ]
                             ]
                           }
+                        ]
+                      },
+                      "filter": {
+                        "name": "השורה נמצאה",
+                        "conditions": [
+                          [
+                            {
+                              "a": "{{20.`__IMTLENGTH__`}}",
+                              "b": "0",
+                              "o": "number:greater"
+                            }
+                          ]
                         ]
                       }
                     }
@@ -771,6 +1054,18 @@
                       "version": 2,
                       "parameters": {
                         "__IMTCONN__": 9848355
+                      },
+                      "filter": {
+                        "name": "השורה לא נמצאה",
+                        "conditions": [
+                          [
+                            {
+                              "a": "{{20.`__IMTLENGTH__`}}",
+                              "b": "0",
+                              "o": "number:equal"
+                            }
+                          ]
+                        ]
                       },
                       "mapper": {
                         "from": "share",
@@ -797,7 +1092,7 @@
                       },
                       "metadata": {
                         "designer": {
-                          "x": 1500,
+                          "x": 1200,
                           "y": 120,
                           "name": "לא נמצאה — הוספה"
                         },
@@ -958,18 +1253,6 @@
                             ]
                           }
                         ]
-                      },
-                      "filter": {
-                        "name": "השורה לא נמצאה",
-                        "conditions": [
-                          [
-                            {
-                              "a": "{{length(21.array)}}",
-                              "o": "number:equal",
-                              "b": "0"
-                            }
-                          ]
-                        ]
                       }
                     }
                   ]
@@ -987,13 +1270,25 @@
               "parameters": {
                 "__IMTCONN__": 9848355
               },
+              "filter": {
+                "name": "action = delete",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{5.action}}",
+                      "b": "delete",
+                      "o": "text:equal"
+                    }
+                  ]
+                ]
+              },
               "mapper": {
                 "from": "share",
                 "limit": "1",
                 "filter": [
                   [
                     {
-                      "a": "6",
+                      "a": "G",
                       "b": "{{5.id}}",
                       "o": "text:equal"
                     }
@@ -1016,25 +1311,25 @@
                 "restore": {
                   "expect": {
                     "from": {
-                      "label": "Shared with me"
+                      "label": "Select from all"
+                    },
+                    "orderBy": {
+                      "mode": "chose"
                     },
                     "sheetId": {
+                      "mode": "chose",
                       "label": "DB of Hours Reported"
-                    },
-                    "spreadsheetId": {
-                      "path": [
-                        "שעות לחיוב עו\"ד אורן ויינברג"
-                      ]
-                    },
-                    "includesHeaders": {
-                      "label": "Yes"
-                    },
-                    "tableFirstRow": {
-                      "label": "A-Z"
                     },
                     "sortOrder": {
                       "mode": "chose",
                       "label": "Ascending"
+                    },
+                    "tableFirstRow": {
+                      "label": "A-Z"
+                    },
+                    "includesHeaders": {
+                      "mode": "chose",
+                      "label": "Yes"
                     },
                     "valueRenderOption": {
                       "mode": "chose",
@@ -1043,16 +1338,7 @@
                     "dateTimeRenderOption": {
                       "mode": "chose",
                       "label": "Formatted string"
-                    },
-                    "filter": [
-                      [
-                        {
-                          "a": {
-                            "label": "Submission ID (G)"
-                          }
-                        }
-                      ]
-                    ]
+                    }
                   },
                   "parameters": {
                     "__IMTCONN__": {
@@ -1071,18 +1357,273 @@
                     "label": "Connection",
                     "required": true
                   }
-                ]
-              },
-              "filter": {
-                "name": "action = delete",
-                "conditions": [
-                  [
-                    {
-                      "a": "{{5.action}}",
-                      "o": "text:equal",
-                      "b": "delete"
+                ],
+                "expect": [
+                  {
+                    "name": "from",
+                    "type": "select",
+                    "label": "Search Method",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "drive",
+                        "share"
+                      ]
                     }
-                  ]
+                  },
+                  {
+                    "name": "valueRenderOption",
+                    "type": "select",
+                    "label": "Value render option",
+                    "validate": {
+                      "enum": [
+                        "FORMATTED_VALUE",
+                        "UNFORMATTED_VALUE",
+                        "FORMULA"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "dateTimeRenderOption",
+                    "type": "select",
+                    "label": "Date and time render option",
+                    "validate": {
+                      "enum": [
+                        "SERIAL_NUMBER",
+                        "FORMATTED_STRING"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "limit",
+                    "type": "uinteger",
+                    "label": "Limit"
+                  },
+                  {
+                    "name": "spreadsheetId",
+                    "type": "text",
+                    "label": "Spreadsheet ID",
+                    "required": true
+                  },
+                  {
+                    "name": "sheetId",
+                    "type": "select",
+                    "label": "Sheet Name",
+                    "required": true
+                  },
+                  {
+                    "name": "includesHeaders",
+                    "type": "select",
+                    "label": "Table contains headers",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        true,
+                        false
+                      ]
+                    }
+                  },
+                  {
+                    "name": "tableFirstRow",
+                    "type": "select",
+                    "label": "Column range",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "A1:Z1",
+                        "A1:BZ1",
+                        "A1:CZ1",
+                        "A1:DZ1",
+                        "A1:MZ1",
+                        "A1:ZZ1",
+                        "A1:AZZ1",
+                        "A1:BZZ1",
+                        "A1:CZZ1",
+                        "A1:DZZ1",
+                        "A1:MZZ1",
+                        "A1:ZZZ1"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "filter",
+                    "type": "filter",
+                    "label": "Filter",
+                    "options": "rpc://google-sheets/2/rpcGetFilterKeys?includesHeaders=true"
+                  },
+                  {
+                    "name": "orderBy",
+                    "type": "select",
+                    "label": "Order by"
+                  },
+                  {
+                    "name": "sortOrder",
+                    "type": "select",
+                    "label": "Sort order",
+                    "validate": {
+                      "enum": [
+                        "asc",
+                        "desc"
+                      ]
+                    }
+                  }
+                ],
+                "interface": [
+                  {
+                    "name": "__IMTLENGTH__",
+                    "type": "uinteger",
+                    "label": "Total number of bundles"
+                  },
+                  {
+                    "name": "__IMTINDEX__",
+                    "type": "uinteger",
+                    "label": "Bundle order position"
+                  },
+                  {
+                    "name": "__ROW_NUMBER__",
+                    "type": "number",
+                    "label": "Row number"
+                  },
+                  {
+                    "name": "__SPREADSHEET_ID__",
+                    "type": "text",
+                    "label": "Spreadsheet ID"
+                  },
+                  {
+                    "name": "__SHEET__",
+                    "type": "text",
+                    "label": "Sheet"
+                  },
+                  {
+                    "name": "0",
+                    "type": "text",
+                    "label": "תאריך לחיוב (A)"
+                  },
+                  {
+                    "name": "1",
+                    "type": "text",
+                    "label": "שם לקוח (B)"
+                  },
+                  {
+                    "name": "2",
+                    "type": "text",
+                    "label": "תעריף לשעה (לא כולל מע\"מ) (C)"
+                  },
+                  {
+                    "name": "3",
+                    "type": "text",
+                    "label": "על מה לחייב (D)"
+                  },
+                  {
+                    "name": "4",
+                    "type": "text",
+                    "label": "הערות (E)"
+                  },
+                  {
+                    "name": "5",
+                    "type": "text",
+                    "label": "שעות לדיווח (F)"
+                  },
+                  {
+                    "name": "6",
+                    "type": "text",
+                    "label": "Submission ID (G)"
+                  },
+                  {
+                    "name": "7",
+                    "type": "text",
+                    "label": "סה\"כ לחיוב  (לא כולל מעמ) (H)"
+                  },
+                  {
+                    "name": "8",
+                    "type": "text",
+                    "label": "מטבע (I)"
+                  },
+                  {
+                    "name": "9",
+                    "type": "text",
+                    "label": "סה\"כ לחיוב  (כולל מעמ) (J)"
+                  },
+                  {
+                    "name": "10",
+                    "type": "text",
+                    "label": "חודש חיוב (K)"
+                  },
+                  {
+                    "name": "11",
+                    "type": "text",
+                    "label": "groupId (L)"
+                  },
+                  {
+                    "name": "12",
+                    "type": "text",
+                    "label": "משתמש (M)"
+                  },
+                  {
+                    "name": "13",
+                    "type": "text",
+                    "label": "סטטוס (N)"
+                  },
+                  {
+                    "name": "14",
+                    "type": "text",
+                    "label": "עדכון אחרון (O)"
+                  },
+                  {
+                    "name": "15",
+                    "type": "text",
+                    "label": "(P)"
+                  },
+                  {
+                    "name": "16",
+                    "type": "text",
+                    "label": "(Q)"
+                  },
+                  {
+                    "name": "17",
+                    "type": "text",
+                    "label": "(R)"
+                  },
+                  {
+                    "name": "18",
+                    "type": "text",
+                    "label": "(S)"
+                  },
+                  {
+                    "name": "19",
+                    "type": "text",
+                    "label": "(T)"
+                  },
+                  {
+                    "name": "20",
+                    "type": "text",
+                    "label": "(U)"
+                  },
+                  {
+                    "name": "21",
+                    "type": "text",
+                    "label": "(V)"
+                  },
+                  {
+                    "name": "22",
+                    "type": "text",
+                    "label": "(W)"
+                  },
+                  {
+                    "name": "23",
+                    "type": "text",
+                    "label": "(X)"
+                  },
+                  {
+                    "name": "24",
+                    "type": "text",
+                    "label": "(Y)"
+                  },
+                  {
+                    "name": "25",
+                    "type": "text",
+                    "label": "(Z)"
+                  }
                 ]
               }
             },
@@ -1162,6 +1703,86 @@
                 ],
                 "expect": [
                   {
+                    "name": "mode",
+                    "type": "select",
+                    "label": "Search Method",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "select",
+                        "fromAll",
+                        "map"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "valueInputOption",
+                    "type": "select",
+                    "label": "Value input option",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "USER_ENTERED",
+                        "RAW"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "from",
+                    "type": "select",
+                    "label": "Drive",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        "drive",
+                        "share",
+                        "team"
+                      ]
+                    }
+                  },
+                  {
+                    "name": "spreadsheetId",
+                    "type": "file",
+                    "label": "Spreadsheet Name",
+                    "required": true
+                  },
+                  {
+                    "name": "sheetId",
+                    "type": "select",
+                    "label": "Sheet Name",
+                    "required": true
+                  },
+                  {
+                    "name": "rowNumber",
+                    "type": "uinteger",
+                    "label": "Row number",
+                    "required": true
+                  },
+                  {
+                    "name": "includesHeaders",
+                    "type": "select",
+                    "label": "Table contains headers",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        true,
+                        false
+                      ]
+                    }
+                  },
+                  {
+                    "name": "useColumnHeaders",
+                    "type": "select",
+                    "label": "Use column headers as IDs of the columns",
+                    "required": true,
+                    "validate": {
+                      "enum": [
+                        true,
+                        false
+                      ]
+                    }
+                  },
+                  {
                     "name": "values",
                     "spec": [
                       {
@@ -1202,7 +1823,7 @@
                       {
                         "name": "7",
                         "type": "text",
-                        "label": "סה\"כ לחיוב\n (לא כולל מעמ) (H)"
+                        "label": "סה\"כ לחיוב  (לא כולל מעמ) (H)"
                       },
                       {
                         "name": "8",
@@ -1212,7 +1833,7 @@
                       {
                         "name": "9",
                         "type": "text",
-                        "label": "סה\"כ לחיוב\n (כולל מעמ) (J)"
+                        "label": "סה\"כ לחיוב  (כולל מעמ) (J)"
                       },
                       {
                         "name": "10",
@@ -1238,6 +1859,71 @@
                         "name": "14",
                         "type": "text",
                         "label": "עדכון אחרון (O)"
+                      },
+                      {
+                        "name": "15",
+                        "type": "text",
+                        "label": "(P)"
+                      },
+                      {
+                        "name": "16",
+                        "type": "text",
+                        "label": "(Q)"
+                      },
+                      {
+                        "name": "17",
+                        "type": "text",
+                        "label": "(R)"
+                      },
+                      {
+                        "name": "18",
+                        "type": "text",
+                        "label": "(S)"
+                      },
+                      {
+                        "name": "19",
+                        "type": "text",
+                        "label": "(T)"
+                      },
+                      {
+                        "name": "20",
+                        "type": "text",
+                        "label": "(U)"
+                      },
+                      {
+                        "name": "21",
+                        "type": "text",
+                        "label": "(V)"
+                      },
+                      {
+                        "name": "22",
+                        "type": "text",
+                        "label": "(W)"
+                      },
+                      {
+                        "name": "23",
+                        "type": "text",
+                        "label": "(X)"
+                      },
+                      {
+                        "name": "24",
+                        "type": "text",
+                        "label": "(Y)"
+                      },
+                      {
+                        "name": "25",
+                        "type": "text",
+                        "label": "(Z)"
+                      },
+                      {
+                        "name": "26",
+                        "type": "text",
+                        "label": "(AA)"
+                      },
+                      {
+                        "name": "27",
+                        "type": "text",
+                        "label": "(AB)"
                       }
                     ],
                     "type": "collection",
@@ -1252,9 +1938,9 @@
                           "הערות",
                           "שעות לדיווח",
                           "Submission ID",
-                          "סה\"כ לחיוב\n (לא כולל מעמ)",
+                          "סה\"כ לחיוב  (לא כולל מעמ)",
                           "מטבע",
-                          "סה\"כ לחיוב\n (כולל מעמ)",
+                          "סה\"כ לחיוב  (כולל מעמ)",
                           "חודש חיוב",
                           "groupId",
                           "משתמש",
@@ -1264,6 +1950,18 @@
                       ]
                     ]
                   }
+                ]
+              },
+              "filter": {
+                "name": "השורה נמצאה",
+                "conditions": [
+                  [
+                    {
+                      "a": "{{30.`__IMTLENGTH__`}}",
+                      "b": "0",
+                      "o": "number:greater"
+                    }
+                  ]
                 ]
               }
             }
