@@ -72,9 +72,10 @@ O עדכון אחרון
 1. Sign in to make.com with the **office's** Make account (create one if needed — Free plan is enough for one office: 2 scenarios, 1,000 operations/month).
 2. **Scenarios → Create a new scenario**.
 3. Top-right **⋮** (next to Help) → **Import Blueprint** → choose `make/HourLedger-Sheets.blueprint.json` from the repo.
-4. You should see 9 modules (Webhook → Router with 3 branches). If you see only 2 modules, the wrong file was picked — reload and import again.
+4. You should see 8 modules (Webhook → Router with 3 branches: Add a Row / Search Rows → Router → Update or Add / Search Rows → Update). If you see only 2 modules, the wrong file was picked — reload and import again.
 5. Click the **Webhook** module → **Add** → name it `HourLedger <שם המשרד>` → Save. This creates a new webhook URL for the office. **Copy the URL** (`https://hook.eu1.make.com/…`) and paste it into `FIRM.webhook` in the office's `index.html` (commit + push). It can also be changed later from the app's Settings.
 6. Open **each** Google Sheets module (there are 6: 2× Add a Row, 2× Search Rows, 2× Update a Row):
+   - Re-selecting the sheet resets the fields under it. In the **Search Rows** modules make sure afterwards: Table contains headers = Yes, Column range = A–Z, Filter = `Submission ID (G)` **Equal to** `id` from the webhook, Limit = 1. In **Update a Row**: Row number = **Row number** of the Search Rows module before it (pick it from the mapping panel).
    - **Connection**: Add → sign in with the office's Google account.
    - **Spreadsheet**: pick the sheet from step 1. **Sheet Name**: `DB of Hours Reported`.
    - Leave the column mapping as is.
@@ -116,4 +117,6 @@ Add the office to the table in `HANDOFF.md` (section "משרדים פעילים"
 - **"Every 15 minutes" after import** — Make resets the schedule on import. Set back to *Immediately as data arrives*.
 - **Rows land in the wrong office's sheet** — the webhook URL in the app points at another office's scenario. Fix in הגדרות.
 - **Search Rows finds nothing on update/delete** — column G header must be exactly `Submission ID`, and the row must have been created by the app (old form rows have no id). The update branch falls back to adding a new row.
+- **Make's Search Rows returns one empty bundle when nothing matches** (`Total number of bundles` = 0) — never test "found" by counting bundles or with an aggregator; the blueprint's router filters use `Total number of bundles` > 0 / = 0. Filter keys in Search Rows are column letters (`G`), and row numbers are mapped as `` {{20.`__ROW_NUMBER__`}} ``.
+- **"Scenario was deactivated by Make"** — 3 consecutive errors switch the scenario off. Fix the cause, toggle ON, then **Show queue → Retry** (or *Process old data*) to replay what piled up.
 - **Make "operations limit reached"** — Free plan cap (1,000/month). Each entry costs 2–4 operations. Upgrade that office's Make to Core, or wait for the monthly reset.

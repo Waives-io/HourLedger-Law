@@ -671,7 +671,7 @@ const I18N = {
     pinSetupSave:"שמירה", pinSetupSkip:"דילוג בינתיים",
     errNotConfirmed:"האימייל עדיין לא אומת — יש ללחוץ על הקישור במייל", errCloud:"שגיאת תקשורת — נסו שוב",
     errNoCloudSession:"יש להיכנס עם סיסמה", errRate:"יותר מדי ניסיונות — נסו שוב בעוד כמה דקות",
-    lock:"נעילה", signOutDevice:"התנתקות מהמכשיר",
+    lock:"נעילה", signOutDevice:"התנתקות מהמכשיר", confirmSignOut:"להתנתק מהמכשיר הזה? בכניסה הבאה יידרשו מייל וסיסמה, וקוד הכניסה יימחק. כדי לצאת ולחזור עם קוד — השתמשו ב\"נעילה\".",
     resyncAll:"שליחת כל הדיווחים לגיליון", resyncConfirm:"לשלוח את כל {n} הדיווחים לגיליון? שורות קיימות יעודכנו, חסרות יתווספו.", resyncQueued:"נשלחים לגיליון:", errNoHook:"אין כתובת סנכרון — יש להזין webhook",
     hookLabel:"כתובת ה-webhook של המשרד (Make)", hookSave:"שמירה", hookSaved:"כתובת הסנכרון נשמרה", hookCleared:"הסנכרון כובה",
     hookHint:"כל משרד מקבל תרחיש Make משלו. ריק = הדיווחים נשמרים בלי סנכרון לגיליון", errHookUrl:"הכתובת חייבת להתחיל ב-https://hook.", kCloud:"חשבון ענן", cloudOn:"מחובר", cloudOff:"במכשיר בלבד",
@@ -755,7 +755,7 @@ const I18N = {
     pinSetupSave:"Save", pinSetupSkip:"Skip for now",
     errNotConfirmed:"Email not confirmed yet — click the link in the email", errCloud:"Connection error — try again",
     errNoCloudSession:"Please sign in with your password", errRate:"Too many attempts — try again in a few minutes",
-    lock:"Lock", signOutDevice:"Sign out of this device",
+    lock:"Lock", signOutDevice:"Sign out of this device", confirmSignOut:"Sign out of this device? Next time you'll need email and password, and the access code is removed. To leave and come back with the code, use \"Lock\".",
     resyncAll:"Send all entries to the sheet", resyncConfirm:"Send all {n} entries to the sheet? Existing rows are updated, missing ones added.", resyncQueued:"Sending to the sheet:", errNoHook:"No sync address — enter a webhook first",
     hookLabel:"Office webhook URL (Make)", hookSave:"Save", hookSaved:"Sync address saved", hookCleared:"Sync turned off",
     hookHint:"Each office has its own Make scenario. Empty = entries are kept without sheet sync", errHookUrl:"The address must start with https://hook.", kCloud:"Cloud account", cloudOn:"Connected", cloudOff:"Device only",
@@ -2114,6 +2114,7 @@ function applyLang(){
     $('[data-i18n="securitySub"]').textContent = L.securitySubCloud;
   }
   $("#toForgot").classList.toggle("hidden", !cloudMode());
+  if(state.cloud) $("#logoutBtn").textContent = L.signOutDevice;
   $("#suFirmField").classList.toggle("hidden", !!FIRM.name);
   $("#firmName").textContent = FIRM.name || "";
   $("#firmName").classList.toggle("hidden", !FIRM.name);
@@ -2249,7 +2250,16 @@ $("#newClient").addEventListener("keydown", e => { if(e.key === "Enter" && (e.ct
 $("#addCat").addEventListener("click", addCat);
 $("#newCat").addEventListener("keydown", e => { if(e.key === "Enter") addCat(); });
 $("#retryBtn").addEventListener("click", async () => { await flushCloud(); flushOutbox(); toast(state.outbox.length + state.cloudOut.length ? t().sent : t().allSent); });
-$("#lockBtn").addEventListener("click", logout);
+$("#lockBtn").addEventListener("click", () => {
+  const acc = findAccount(state.user);
+  if(state.cloud && !(acc && acc.pinHash)){
+    pendingPinUser = cloudUser;
+    clearSessionUI();
+    showPanel("pinSetupPanel");
+    return;
+  }
+  logout();
+});
 $("#resyncBtn").addEventListener("click", () => {
   if(!orgCfg().webhook){ toast(t().errNoHook); return; }
   const n = state.records.length;
@@ -2284,7 +2294,10 @@ async function saveWebhook(){
 }
 $("#hookSave").addEventListener("click", saveWebhook);
 $("#hookUrl").addEventListener("keydown", e => { if(e.key === "Enter") saveWebhook(); });
-$("#logoutBtn").addEventListener("click", () => { if(state.cloud) signOutDevice(); else logout(); });
+$("#logoutBtn").addEventListener("click", () => {
+  if(!state.cloud){ logout(); return; }
+  if(confirm(t().confirmSignOut)) signOutDevice();
+});
 $("#importLocalBtn").addEventListener("click", () => importLocal());
 $("#signOutFromPin").addEventListener("click", signOutDevice);
 $("#toForgot").addEventListener("click", () => { $("#forgotEmail").value = $("#loginEmail").value; showPanel("forgotPanel"); });
