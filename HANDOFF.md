@@ -57,6 +57,15 @@
 
 ---
 
+## משרדים פעילים
+
+| משרד | ריפו / אתר | חשבון Make | גיליון | חובר |
+|---|---|---|---|---|
+| עו"ד אורן וינברג | `Waives-io/HourLedger-Law` · https://waives-io.github.io/HourLedger-Law/ | של אורן ("Pino", p1n0f2p1c@gmail.com) | "שעות לחיוב עו"ד אורן ויינברג" (בדרייב של אורן) | 5.2026 |
+| משרד דמו (לוובינר/הדגמות) | `Waives-io/HourLedger-Demo` · https://waives-io.github.io/HourLedger-Demo/ | של WAIVES (contact@waives.io), סצנריו `HourLedger DEMO → Google Sheets` (id 7442454), webhook `we3jdwllve7z9ei9zn18i8c8ls1rng6x` | "HourLedger DEMO — שעות לחיוב" בדרייב של WAIVES (`1Rsw4kjmnSqSrvS4AHGn6jzLo6WGkpP5-K5hu4j2qJec`), טאב `תעריפים` עם תעריף/מטבע ללקוח; C/H/I/J/K נכתבות כנוסחאות פר-שורה ע"י Make | 16.9.2026 |
+
+באתר הדמו נכנסים עם חשבון הדמו המקומי `demo@hourledger.app` / `Demo2026`. Make Free של WAIVES = 2 סצנריות פעילות — ביום הוובינר (24.9) יש התנגשות עם תזכורות הוובינר (ראו סשן 16.9).
+
 ## הפרומפט לפתיחת סשן ב-Claude Code
 
 > אני עובדת על HourLedger-Law, אפליקציית דיווח שעות למשרדי עו"ד. קרא את HANDOFF.md ואת README.md בריפו לפני שאתה נוגע בקוד. כל האפליקציה נמצאת ב-index.html. אחרי כל שינוי, עשה commit עם הודעה קצרה בעברית ו-push ל-main, ותוודא שגיטהב פייג'ס מתעדכן.
