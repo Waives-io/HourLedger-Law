@@ -638,7 +638,8 @@ const cloudMode = () => !!sb;
 /* ---------- This deployment's office ----------
    One deployment (one GitHub Pages site) = one law office. Set the name and the
    office's Make webhook here; signup then skips the "office name" field and every
-   account created on this site belongs to this office. To onboard another office,
+   account created on this site belongs to this office. A webhook set here is final:
+   the Settings field is hidden and nothing saved in Supabase/localStorage can replace it. To onboard another office,
    copy the repo and change these two lines (see .claude/skills/hourledger-new-office). */
 const FIRM = {
   name: 'עו"ד אורן וינברג',
@@ -766,7 +767,7 @@ const I18N = {
     inUse:"בשימוש",
     accountTitle:"חשבון וסנכרון", kUser:"משתמש", kOrg:"משרד",
     kSync:"סנכרון לגוגל שיטס", kPending:"ממתין לשליחה",
-    syncOn:"פעיל", syncOff:"לא מוגדר", retrySync:"שליחה חוזרת", logout:"התנתקות",
+    syncOn:"פעיל", syncOff:"לא מוגדר", syncFixed:"פעיל (קבוע לאתר זה)", retrySync:"שליחה חוזרת", logout:"התנתקות",
     pending:"ממתין לסנכרון", sent:"נשלח לסנכרון", allSent:"הכול סונכרן",
     months:["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"],
     dow:["א","ב","ג","ד","ה","ו","ש"], today:"היום", pickDate:"בחירת תאריך",
@@ -851,7 +852,7 @@ const I18N = {
     inUse:"in use",
     accountTitle:"Account & sync", kUser:"User", kOrg:"Office",
     kSync:"Google Sheets sync", kPending:"Waiting to send",
-    syncOn:"Active", syncOff:"Not configured", retrySync:"Retry sync", logout:"Sign out",
+    syncOn:"Active", syncOff:"Not configured", syncFixed:"Active (fixed for this site)", retrySync:"Retry sync", logout:"Sign out",
     pending:"waiting to sync", sent:"Synced", allSent:"Everything synced",
     months:["January","February","March","April","May","June","July","August","September","October","November","December"],
     dow:["S","M","T","W","T","F","S"], today:"Today", pickDate:"Pick a date",
@@ -908,6 +909,12 @@ const t = () => I18N[state.lang];
 const accountsList = () => load(KA.accounts, []);
 const dynOrgs = () => load(KA.orgs, {});
 function orgCfg(){
+  const cfg = orgCfgRaw();
+  // a webhook baked into this deployment (FIRM.webhook) always wins — it cannot be
+  // overridden from Settings, Supabase or another device (one site = one office)
+  return FIRM.webhook ? Object.assign({}, cfg, { webhook: FIRM.webhook }) : cfg;
+}
+function orgCfgRaw(){
   if(state.cloud && state.orgInfo) return { he: state.orgInfo.name, en: state.orgInfo.name, webhook: state.orgInfo.webhook || "", clients: [], categories: DEFAULT_CATEGORIES };
   // a webhook set in Settings on this device overrides the built-in value (lets the demo account test a real flow)
   if(ORGS[state.org]) return Object.assign({}, ORGS[state.org], { webhook: load(K.hook(state.org), null) ?? ORGS[state.org].webhook });
@@ -2037,9 +2044,10 @@ function renderSettings(){
 
   $("#kvUser").textContent = state.user || "";
   $("#kvOrg").textContent = orgCfg()[state.lang] || orgCfg().he;
-  $("#kvSync").textContent = orgCfg().webhook ? t().syncOn : t().syncOff;
   $("#kvCloud").textContent = state.cloud ? t().cloudOn : t().cloudOff;
   if(document.activeElement !== $("#hookUrl")) $("#hookUrl").value = orgCfg().webhook || "";
+  $(".hook-form").classList.toggle("hidden", !!FIRM.webhook);
+  $("#kvSync").textContent = FIRM.webhook ? t().syncFixed : (orgCfg().webhook ? t().syncOn : t().syncOff);
   $("#importLocalBtn").classList.toggle("hidden", !localOrgsWithData().length);
   updateSyncUI();
 }
