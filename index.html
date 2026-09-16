@@ -243,6 +243,13 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .preset:hover{border-color:var(--steel)}
 .preset[aria-pressed="true"]{background:var(--navy);color:var(--white);border-color:var(--navy)}
 .dash-head{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-bottom:4px}
+.group-tools{display:flex;justify-content:flex-end;padding:8px 10px 2px}
+.btn-sm{padding:7px 12px;font-size:13.5px;border-radius:var(--r-pill)}
+.inv-client{font-weight:700;font-size:16px;margin:-6px 0 14px}
+.inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.inv-grid label,.inv-mail label{display:block;font-weight:700;font-size:13.5px;margin-bottom:6px}
+.inv-mail{margin-top:14px}
+@media (max-width:420px){.inv-grid{grid-template-columns:1fr}}
 .dash-head .card-title{margin:0}
 .stats-inline{display:flex;gap:8px}
 .stats-inline .stat{padding:6px 12px;display:flex;align-items:baseline;gap:6px}
@@ -596,6 +603,30 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 
 <div class="toast"><div class="toast-in" id="toast"><span class="tick">✓</span><span id="toastMsg"></span></div></div>
 
+<div class="modal-bg hidden" id="invBg">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="invTitle">
+    <div class="modal-head">
+      <h2 id="invTitle" data-i18n="invTitle">הפקת חשבונית</h2>
+      <button type="button" class="modal-close" id="invClose" aria-label="סגירה">✕</button>
+    </div>
+    <div class="inv-client" id="invClient"></div>
+    <div class="inv-grid">
+      <label><span data-i18n="fromDate">מתאריך</span><input type="date" class="control" id="invFrom"></label>
+      <label><span data-i18n="toDate">עד תאריך</span><input type="date" class="control" id="invTo"></label>
+    </div>
+    <div class="inv-mail">
+      <label for="invEmail" data-i18n="invEmail">אימייל הלקוח לשליחת החשבונית</label>
+      <input type="email" class="control" id="invEmail" dir="ltr" placeholder="client@example.com" autocomplete="off">
+      <span class="hint" data-i18n="invHint">החשבונית מופקת ממערכת החשבוניות של המשרד לפי התעריף של הלקוח, ונשלחת למייל</span>
+      <span class="err" id="invErr"></span>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary" id="invSend" data-i18n="invSend">הפקה ושליחה</button>
+      <button type="button" class="btn btn-ghost" id="invCancel" data-i18n="cancel">ביטול</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg hidden" id="modalBg">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-head">
@@ -733,6 +764,9 @@ const I18N = {
     entryTitle:"דיווח שעות", entrySub:"מילוי מהיר של שעות חיוב ללקוח",
     todayTitle:"הדיווחים האחרונים",
     dashTitle:"דשבורד חיובי שעות", dashSub:"בחרו חיתוך ותקופה",
+    invBtn:"הפקת חשבונית", invTitle:"הפקת חשבונית", invEmail:"אימייל הלקוח לשליחת החשבונית", invSend:"הפקה ושליחה", cancel:"ביטול",
+    invHint:"החשבונית מופקת ממערכת החשבוניות של המשרד לפי התעריף של הלקוח, ונשלחת למייל", invSent:"הבקשה נשלחה — החשבונית תגיע למייל בעוד רגע",
+    invAllTime:"כל התקופה", errEmail:"יש להזין אימייל תקין", errRange:"תאריך ההתחלה מאוחר מתאריך הסיום",
     navEntry:"דיווח שעות", navDash:"דשבורד", navSettings:"הגדרות",
     fDate:"תאריך דיווח", fClient:"שם הלקוח", fCats:"עבור מה לחייב",
     fCatsHint:"ניתן לבחור יותר מקטגוריה אחת", fHours:"מספר שעות",
@@ -818,6 +852,9 @@ const I18N = {
     entryTitle:"Time entry", entrySub:"Log billable hours for a client",
     todayTitle:"Recent entries",
     dashTitle:"Hours dashboard", dashSub:"Choose a breakdown and a period",
+    invBtn:"Create invoice", invTitle:"Create invoice", invEmail:"Client email for the invoice", invSend:"Create & send", cancel:"Cancel",
+    invHint:"The invoice is produced by the office's invoicing system at the client's rate and emailed", invSent:"Request sent — the invoice will arrive by email shortly",
+    invAllTime:"All time", errEmail:"Enter a valid email", errRange:"Start date is after end date",
     navEntry:"Time entry", navDash:"Dashboard", navSettings:"Settings",
     fDate:"Entry date", fClient:"Client name", fCats:"Billable activity",
     fCatsHint:"More than one may be selected", fHours:"Hours",
@@ -873,7 +910,8 @@ const K = {
   cloudOut: o => "hourledger.cloudout.v1." + o,
   hook: o => "hourledger.webhook.v1." + o,
   migrated: o => "hourledger.migrated.v1." + o,
-  prefs: e => "hourledger.prefs.v1." + e
+  prefs: e => "hourledger.prefs.v1." + e,
+  invMail: o => "hourledger.invmail.v1." + o
 };
 function load(key, fallback){
   try{ const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); }
@@ -2009,7 +2047,9 @@ function renderDash(){
     const open = !!state.openGroups[k];
     const name = mode === "client" ? k : catLabel(k);
     const count = rows.length + " " + (rows.length === 1 ? t().entry : t().entries);
-    const inner = subTreeHTML(k, rows, mode);
+    const tools = mode === "client" && orgCfg().webhook
+      ? `<div class="group-tools"><button type="button" class="btn btn-ghost btn-sm" data-invoice="${esc(k)}">${esc(t().invBtn)}</button></div>` : "";
+    const inner = tools + subTreeHTML(k, rows, mode);
     return `<div class="group">
       <button type="button" class="group-head" data-group="${esc(k)}" aria-expanded="${open}">
         <span class="caret">▶</span>
@@ -2187,6 +2227,44 @@ function openModal(id){
   document.body.style.overflow = "hidden";
   setTimeout(() => { const f = $("#editForm .control"); if(f) f.focus(); }, 50);
 }
+/* ---------- Invoice request (dashboard → Make → invoicing system) ----------
+   Sends the client + date range + email to the office webhook as action "invoice".
+   The Make scenario reads that client's rows for the period from the sheet, builds the
+   invoice at the client's rate and emails it. The app itself never sees amounts. */
+let invClient = "";
+function openInvoice(client){
+  invClient = client;
+  $("#invClient").textContent = client;
+  $("#invFrom").value = state.rangeFrom; $("#invTo").value = state.rangeTo;
+  DP.refresh($("#invFrom")); DP.refresh($("#invTo"));
+  $("#invEmail").value = (load(K.invMail(state.org), {}) || {})[client] || "";
+  $("#invErr").textContent = "";
+  $("#invBg").classList.remove("hidden");
+  document.body.style.overflow = "hidden";
+  setTimeout(() => $("#invEmail").focus(), 50);
+}
+function closeInvoice(){
+  $("#invBg").classList.add("hidden");
+  document.body.style.overflow = "";
+}
+function sendInvoice(){
+  const from = $("#invFrom").value, to = $("#invTo").value, email = $("#invEmail").value.trim(), err = $("#invErr");
+  err.textContent = "";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent = t().errEmail; $("#invEmail").focus(); return; }
+  if(from && to && from > to){ err.textContent = t().errRange; return; }
+  const mails = load(K.invMail(state.org), {}) || {};
+  mails[invClient] = email; store(K.invMail(state.org), mails);
+  const period = from || to ? `${from ? fmtDate(from) : "…"} – ${to ? fmtDate(to) : "…"}` : t().invAllTime;
+  sendEvent({ action:"invoice", client: invClient, from, to, period, email, user: state.user || "", org: state.org || "", orgName: orgCfg().he });
+  closeInvoice();
+  toast(t().invSent);
+}
+$("#invSend").addEventListener("click", sendInvoice);
+$("#invCancel").addEventListener("click", closeInvoice);
+$("#invClose").addEventListener("click", closeInvoice);
+$("#invBg").addEventListener("click", e => { if(e.target === $("#invBg")) closeInvoice(); });
+$("#invEmail").addEventListener("keydown", e => { if(e.key === "Enter") sendInvoice(); });
+
 function closeModal(){
   state.editingId = null;
   $("#modalBg").classList.add("hidden");
@@ -2378,6 +2456,8 @@ $("#pinSetupInput").addEventListener("keydown", e => { if(e.key === "Enter") $("
 document.addEventListener("click", e => {
   const head = e.target.closest("[data-group]");
   if(head){ state.openGroups[head.dataset.group] = !state.openGroups[head.dataset.group]; renderDash(); return; }
+  const inv = e.target.closest("[data-invoice]");
+  if(inv){ openInvoice(inv.dataset.invoice); return; }
   const ed = e.target.closest("[data-edit]");
   if(ed){ openModal(ed.dataset.edit); return; }
   const del = e.target.closest("[data-del]");
@@ -2485,7 +2565,7 @@ function installPasswordToggles(){
 }
 
 /* boot */
-attachDatePicker($("#rangeFrom")); attachDatePicker($("#rangeTo"));
+attachDatePicker($("#rangeFrom")); attachDatePicker($("#rangeTo")); attachDatePicker($("#invFrom")); attachDatePicker($("#invTo"));
 if("serviceWorker" in navigator && location.protocol === "https:"){ navigator.serviceWorker.register("sw.js").catch(() => {}); }
 installPasswordToggles();
 $("#logoHead").src = LOGO_SRC;
