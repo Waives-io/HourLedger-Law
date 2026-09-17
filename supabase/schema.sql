@@ -123,3 +123,7 @@ create policy "categories: org" on public.categories for all
 drop policy if exists "records: org" on public.records;
 create policy "records: org" on public.records for all
   using (org_id = public.my_org()) with check (org_id = public.my_org());
+
+-- 17.9.2026: default invoice email per client (used by the dashboard "create invoice" flow).
+-- Existing projects: run this line once in the SQL editor.
+alter table public.clients add column if not exists email text;

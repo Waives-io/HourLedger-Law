@@ -249,6 +249,16 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .inv-grid label,.inv-mail label{display:block;font-weight:700;font-size:13.5px;margin-bottom:6px}
 .inv-mail{margin-top:14px}
+.list-item .lmail{flex:1.1;min-width:0;padding:7px 10px;font-size:13px;direction:ltr;text-align:left}
+.inv-preview{margin-top:16px;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
+.inv-preview table{width:100%;border-collapse:collapse;font-size:13.5px}
+.inv-preview th,.inv-preview td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+.inv-preview th{background:var(--surface);font-size:12.5px;color:var(--ink-soft);font-weight:700}
+.inv-preview td.num,.inv-preview th.num{text-align:left;direction:ltr;font-variant-numeric:tabular-nums;white-space:nowrap}
+.inv-preview .sub{color:var(--ink-faint);font-size:12px}
+.inv-preview tfoot td{border-bottom:0;font-weight:700}
+.inv-preview tfoot tr.grand td{font-size:15px;background:var(--surface)}
+.inv-wait{padding:18px;text-align:center;color:var(--ink-soft)}
 @media (max-width:420px){.inv-grid{grid-template-columns:1fr}}
 .dash-head .card-title{margin:0}
 .stats-inline{display:flex;gap:8px}
@@ -620,8 +630,10 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <span class="hint" data-i18n="invHint">החשבונית מופקת ממערכת החשבוניות של המשרד לפי התעריף של הלקוח, ונשלחת למייל</span>
       <span class="err" id="invErr"></span>
     </div>
+    <div id="invPreview" class="hidden"></div>
     <div class="modal-actions">
-      <button type="button" class="btn btn-primary" id="invSend" data-i18n="invSend">הפקה ושליחה</button>
+      <button type="button" class="btn btn-primary" id="invPreviewBtn" data-i18n="invPreview">הצגת החשבונית לאישור</button>
+      <button type="button" class="btn btn-primary hidden" id="invSend" data-i18n="invSend">אישור ושליחה</button>
       <button type="button" class="btn btn-ghost" id="invCancel" data-i18n="cancel">ביטול</button>
     </div>
   </div>
@@ -670,10 +682,13 @@ const cloudMode = () => !!sb;
    One deployment (one GitHub Pages site) = one law office. Set the name and the
    office's Make webhook here; signup then skips the "office name" field and every
    account created on this site belongs to this office. A webhook set here is final:
-   the Settings field is hidden and nothing saved in Supabase/localStorage can replace it. To onboard another office,
+   the Settings field is hidden and nothing saved in Supabase/localStorage can replace it.
+   `invoicing: true` shows the "create invoice" button in the dashboard — only for deployments
+   whose Make scenario has the `action = invoice` / `invoice_preview` routes. To onboard another office,
    copy the repo and change these two lines (see .claude/skills/hourledger-new-office). */
 const FIRM = {
   name: 'עו"ד אורן וינברג',
+  invoicing: false,
   webhook: "https://hook.eu1.make.com/3f461zbp81thyc76u95jzfs3yn6i5p1r"
 };
 const WEINBERG_WEBHOOK = FIRM.webhook;
@@ -764,7 +779,10 @@ const I18N = {
     entryTitle:"דיווח שעות", entrySub:"מילוי מהיר של שעות חיוב ללקוח",
     todayTitle:"הדיווחים האחרונים",
     dashTitle:"דשבורד חיובי שעות", dashSub:"בחרו חיתוך ותקופה",
-    invBtn:"הפקת חשבונית", invTitle:"הפקת חשבונית", invEmail:"אימייל הלקוח לשליחת החשבונית", invSend:"הפקה ושליחה", cancel:"ביטול",
+    invBtn:"הפקת חשבונית", invTitle:"הפקת חשבונית", invEmail:"אימייל הלקוח לשליחת החשבונית", invSend:"אישור ושליחה", cancel:"ביטול",
+    invPreview:"הצגת החשבונית לאישור", invLoading:"מחשבים את החשבונית מתוך הגיליון…", invNoLines:"אין שעות לחיוב בטווח הזה",
+    invPreviewErr:"לא הצלחנו לקבל את פרטי החשבונית. בדקו את החיבור ונסו שוב", invClientMail:"אימייל לחשבוניות", invMailSaved:"האימייל נשמר",
+    thDate:"תאריך", thActivity:"פעילות", thHours:"שעות", thRate:"תעריף", thAmount:"סכום", subTotal:"סה\"כ לפני מע\"מ", vat:"מע\"מ", grandTotal:"סה\"כ לתשלום", hoursTotal:"סה\"כ שעות",
     invHint:"החשבונית מופקת ממערכת החשבוניות של המשרד לפי התעריף של הלקוח, ונשלחת למייל", invSent:"הבקשה נשלחה — החשבונית תגיע למייל בעוד רגע",
     invAllTime:"כל התקופה", invPeriod:"מ-{from} עד {to}", invFrom:"מ-{from}", invTo:"עד {to}", errEmail:"יש להזין אימייל תקין", errRange:"תאריך ההתחלה מאוחר מתאריך הסיום",
     navEntry:"דיווח שעות", navDash:"דשבורד", navSettings:"הגדרות",
@@ -852,7 +870,10 @@ const I18N = {
     entryTitle:"Time entry", entrySub:"Log billable hours for a client",
     todayTitle:"Recent entries",
     dashTitle:"Hours dashboard", dashSub:"Choose a breakdown and a period",
-    invBtn:"Create invoice", invTitle:"Create invoice", invEmail:"Client email for the invoice", invSend:"Create & send", cancel:"Cancel",
+    invBtn:"Create invoice", invTitle:"Create invoice", invEmail:"Client email for the invoice", invSend:"Approve & send", cancel:"Cancel",
+    invPreview:"Show invoice for approval", invLoading:"Calculating the invoice from the sheet…", invNoLines:"No billable hours in this range",
+    invPreviewErr:"Could not fetch the invoice details. Check the connection and try again", invClientMail:"Invoice email", invMailSaved:"Email saved",
+    thDate:"Date", thActivity:"Activity", thHours:"Hours", thRate:"Rate", thAmount:"Amount", subTotal:"Subtotal", vat:"VAT", grandTotal:"Total due", hoursTotal:"Total hours",
     invHint:"The invoice is produced by the office's invoicing system at the client's rate and emailed", invSent:"Request sent — the invoice will arrive by email shortly",
     invAllTime:"All time", invPeriod:"{from} to {to}", invFrom:"from {from}", invTo:"to {to}", errEmail:"Enter a valid email", errRange:"Start date is after end date",
     navEntry:"Time entry", navDash:"Dashboard", navSettings:"Settings",
@@ -1384,7 +1405,8 @@ async function pullCloud(){
   const org = state.orgInfo.id;
   try{
     const [c, k, r, o] = await Promise.all([
-      sb.from("clients").select("name").eq("org_id", org).order("name"),
+      sb.from("clients").select("name,email").eq("org_id", org).order("name")
+        .then(r => r.error ? sb.from("clients").select("name").eq("org_id", org).order("name") : r),   // older schema without the email column
       sb.from("categories").select("id,he,en,sort").eq("org_id", org).order("sort"),
       sb.from("records").select("*").eq("org_id", org),
       sb.from("orgs").select("name,webhook").eq("id", org).maybeSingle()
@@ -1392,6 +1414,11 @@ async function pullCloud(){
     if(c.error || k.error || r.error) throw (c.error || k.error || r.error);
     if(o.data){ state.orgInfo.name = o.data.name; state.orgInfo.webhook = o.data.webhook || ""; upsertLocalAccount({ email: state.user, firm: o.data.name, webhook: o.data.webhook || "" }); }
     state.clients = c.data.map(x => x.name);
+    if(c.data.some(x => "email" in x)){
+      const mails = load(K.invMail(state.org), {}) || {};
+      c.data.forEach(x => { if(x.email) mails[x.name] = x.email; });
+      store(K.invMail(state.org), mails);
+    }
     if(k.data.length){
       state.categories = k.data.map(x => ({ id:x.id, he:x.he, en:x.en }));
     }else{
@@ -2047,9 +2074,9 @@ function renderDash(){
     const open = !!state.openGroups[k];
     const name = mode === "client" ? k : catLabel(k);
     const count = rows.length + " " + (rows.length === 1 ? t().entry : t().entries);
-    const tools = mode === "client" && orgCfg().webhook
-      ? `<div class="group-tools"><button type="button" class="btn btn-ghost btn-sm" data-invoice="${esc(k)}">${esc(t().invBtn)}</button></div>` : "";
-    const inner = tools + subTreeHTML(k, rows, mode);
+    const tools = mode === "client" && FIRM.invoicing && orgCfg().webhook
+      ? `<div class="group-tools"><button type="button" class="btn btn-ghost btn-sm" data-invoice="${esc(k)}">${esc(t().invBtn)} · ${esc(k)}</button></div>` : "";
+    const inner = subTreeHTML(k, rows, mode) + tools;
     return `<div class="group">
       <button type="button" class="group-head" data-group="${esc(k)}" aria-expanded="${open}">
         <span class="caret">▶</span>
@@ -2068,9 +2095,11 @@ function renderSettings(){
     usedClients[r.client] = (usedClients[r.client]||0) + 1;
     usedCats[r.category] = (usedCats[r.category]||0) + 1;
   });
+  const mails = load(K.invMail(state.org), {}) || {};
   $("#clientList").innerHTML = state.clients.length
     ? state.clients.map(c => `<div class="list-item">
         <span class="lname">${esc(c)}</span>
+        ${FIRM.invoicing ? `<input type="email" class="control lmail" data-mail-client="${esc(c)}" value="${esc(mails[c] || "")}" placeholder="${esc(t().invClientMail)}" autocomplete="off">` : ""}
         ${usedClients[c] ? `<span class="lused">${usedClients[c]} ${esc(t().inUse)}</span>` : ""}
         <button type="button" class="lx" data-del-client="${esc(c)}" aria-label="${esc(t().delete)}">✕</button>
       </div>`).join("")
@@ -2117,6 +2146,20 @@ function addClient(){
   toast(added > 1 ? `${t().clientsAdded} ${added}` : t().clientAdded);
   if(dupes) err.textContent = `${t().skippedDupes} ${dupes}`;
 }
+function setClientMail(name, email){
+  const mails = load(K.invMail(state.org), {}) || {};
+  if(email) mails[name] = email; else delete mails[name];
+  store(K.invMail(state.org), mails);
+  if(state.cloud) cloudQueue({ t:"clients", op:"upsert", row:{ org_id: state.orgInfo.id, name, email: email || null } });
+}
+document.addEventListener("change", e => {
+  const inp = e.target.closest("[data-mail-client]");
+  if(!inp) return;
+  const v = inp.value.trim();
+  if(v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ inp.setCustomValidity("x"); inp.reportValidity(); inp.setCustomValidity(""); return; }
+  setClientMail(inp.dataset.mailClient, v);
+  toast(t().invMailSaved);
+});
 function removeClient(name){
   if(!confirm(t().confirmRemoveClient)) return;
   state.clients = state.clients.filter(c => c !== name);
@@ -2231,43 +2274,111 @@ function openModal(id){
    Sends the client + date range + email to the office webhook as action "invoice".
    The Make scenario reads that client's rows for the period from the sheet, builds the
    invoice at the client's rate and emails it. The app itself never sees amounts. */
-let invClient = "";
+let invClient = "", invPreviewData = null;
+function invReset(){
+  invPreviewData = null;
+  $("#invPreview").classList.add("hidden"); $("#invPreview").innerHTML = "";
+  $("#invSend").classList.add("hidden"); $("#invPreviewBtn").classList.remove("hidden"); $("#invPreviewBtn").disabled = false;
+  $("#invErr").textContent = "";
+}
 function openInvoice(client){
   invClient = client;
   $("#invClient").textContent = client;
   $("#invFrom").value = state.rangeFrom; $("#invTo").value = state.rangeTo;
   DP.refresh($("#invFrom")); DP.refresh($("#invTo"));
   $("#invEmail").value = (load(K.invMail(state.org), {}) || {})[client] || "";
-  $("#invErr").textContent = "";
+  invReset();
   $("#invBg").classList.remove("hidden");
   document.body.style.overflow = "hidden";
   setTimeout(() => $("#invEmail").focus(), 50);
 }
+function invInputs(){
+  const from = $("#invFrom").value, to = $("#invTo").value, email = $("#invEmail").value.trim(), err = $("#invErr");
+  err.textContent = "";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent = t().errEmail; $("#invEmail").focus(); return null; }
+  if(from && to && from > to){ err.textContent = t().errRange; return null; }
+  const period = from && to ? t().invPeriod.replace("{from}", fmtDate(from)).replace("{to}", fmtDate(to))
+    : from ? t().invFrom.replace("{from}", fmtDate(from))
+    : to ? t().invTo.replace("{to}", fmtDate(to))
+    : t().invAllTime;
+  return { from, to, email, period };
+}
+const money = (n, cur) => (Math.round(n * 100) / 100).toLocaleString(state.lang === "he" ? "he-IL" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " " + (cur === "USD" ? "$" : cur === "EUR" ? "€" : "₪");
+/* Ask Make for the invoice lines (rates live in the office sheet, never in the app).
+   Sent form-encoded so the browser needs no CORS preflight; Make answers via a Webhook Response
+   (plain text, one row per line — no JSON building inside Make). */
+async function fetchPreview(inp){
+  const url = orgCfg().webhook;
+  const body = new URLSearchParams({ action:"invoice_preview", client: invClient, from: inp.from, to: inp.to, org: state.org || "", user: state.user || "" });
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 30000);
+  try{
+    const res = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body, signal: ctrl.signal });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    // one line per sheet row: date|activity|notes|hours|rate|currency
+    const lines = (await res.text()).split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
+      const [date, category, notes, hours, rate, currency] = l.split("|");
+      return { date, category, notes, hours, rate, currency };
+    });
+    return { lines, vat: 18 };
+  }finally{ clearTimeout(timer); }
+}
+function renderPreview(d){
+  const L = t();
+  const lines = (d.lines || []).map(x => ({ date: x.date, category: x.category, notes: x.notes, hours: +x.hours || 0, rate: +x.rate || 0, currency: x.currency || "NIS" }));
+  const box = $("#invPreview");
+  box.classList.remove("hidden");
+  if(!lines.length){ box.innerHTML = `<div class="inv-wait">${esc(L.invNoLines)}</div>`; return false; }
+  const cur = lines[0].currency;
+  const sub = lines.reduce((a, x) => a + x.hours * x.rate, 0);
+  const hours = lines.reduce((a, x) => a + x.hours, 0);
+  const vatPct = cur === "NIS" ? (+d.vat || 18) : 0;
+  const vat = sub * vatPct / 100;
+  box.innerHTML = `<div class="inv-preview"><table>
+    <thead><tr><th>${esc(L.thDate)}</th><th>${esc(L.thActivity)}</th><th class="num">${esc(L.thHours)}</th><th class="num">${esc(L.thRate)}</th><th class="num">${esc(L.thAmount)}</th></tr></thead>
+    <tbody>${lines.map(x => `<tr><td>${esc(x.date)}</td><td>${esc(x.category)}${x.notes ? `<div class="sub">${esc(x.notes)}</div>` : ""}</td><td class="num">${fmtHours(x.hours)}</td><td class="num">${money(x.rate, cur)}</td><td class="num">${money(x.hours * x.rate, cur)}</td></tr>`).join("")}</tbody>
+    <tfoot>
+      <tr><td colspan="2">${esc(L.hoursTotal)}</td><td class="num">${fmtHours(hours)}</td><td></td><td></td></tr>
+      <tr><td colspan="4">${esc(L.subTotal)}</td><td class="num">${money(sub, cur)}</td></tr>
+      ${vatPct ? `<tr><td colspan="4">${esc(L.vat)} ${vatPct}%</td><td class="num">${money(vat, cur)}</td></tr>` : ""}
+      <tr class="grand"><td colspan="4">${esc(L.grandTotal)}</td><td class="num">${money(sub + vat, cur)}</td></tr>
+    </tfoot></table></div>`;
+  return true;
+}
+async function previewInvoice(){
+  const inp = invInputs(); if(!inp) return;
+  const btn = $("#invPreviewBtn"); btn.disabled = true;
+  $("#invPreview").classList.remove("hidden"); $("#invPreview").innerHTML = `<div class="inv-wait">${esc(t().invLoading)}</div>`;
+  try{
+    const d = await fetchPreview(inp);
+    invPreviewData = d;
+    if(renderPreview(d)){ btn.classList.add("hidden"); $("#invSend").classList.remove("hidden"); }
+    else btn.disabled = false;
+  }catch(e){
+    console.warn("invoice preview failed", e);
+    $("#invPreview").classList.add("hidden");
+    $("#invErr").textContent = t().invPreviewErr;
+    btn.disabled = false;
+  }
+}
+["#invFrom", "#invTo"].forEach(sel => $(sel).addEventListener("change", invReset));
 function closeInvoice(){
   $("#invBg").classList.add("hidden");
   document.body.style.overflow = "";
 }
 function sendInvoice(){
-  const from = $("#invFrom").value, to = $("#invTo").value, email = $("#invEmail").value.trim(), err = $("#invErr");
-  err.textContent = "";
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent = t().errEmail; $("#invEmail").focus(); return; }
-  if(from && to && from > to){ err.textContent = t().errRange; return; }
+  const inp = invInputs(); if(!inp || !invPreviewData) return;
   const mails = load(K.invMail(state.org), {}) || {};
-  mails[invClient] = email; store(K.invMail(state.org), mails);
-  // Hebrew words around the dates keep the order readable inside an RTL PDF
-  const period = from && to ? t().invPeriod.replace("{from}", fmtDate(from)).replace("{to}", fmtDate(to))
-    : from ? t().invFrom.replace("{from}", fmtDate(from))
-    : to ? t().invTo.replace("{to}", fmtDate(to))
-    : t().invAllTime;
-  sendEvent({ action:"invoice", client: invClient, from, to, period, email, user: state.user || "", org: state.org || "", orgName: orgCfg().he });
+  if(mails[invClient] !== inp.email) setClientMail(invClient, inp.email);
+  sendEvent({ action:"invoice", client: invClient, from: inp.from, to: inp.to, period: inp.period, email: inp.email, user: state.user || "", org: state.org || "", orgName: orgCfg().he });
   closeInvoice();
   toast(t().invSent);
 }
+$("#invPreviewBtn").addEventListener("click", previewInvoice);
 $("#invSend").addEventListener("click", sendInvoice);
 $("#invCancel").addEventListener("click", closeInvoice);
 $("#invClose").addEventListener("click", closeInvoice);
 $("#invBg").addEventListener("click", e => { if(e.target === $("#invBg")) closeInvoice(); });
-$("#invEmail").addEventListener("keydown", e => { if(e.key === "Enter") sendInvoice(); });
+$("#invEmail").addEventListener("keydown", e => { if(e.key === "Enter"){ if($("#invSend").classList.contains("hidden")) previewInvoice(); else sendInvoice(); } });
 
 function closeModal(){
   state.editingId = null;
