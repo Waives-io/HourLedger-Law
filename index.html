@@ -785,7 +785,7 @@ const I18N = {
     dashTitle:"דשבורד חיובי שעות", dashSub:"בחרו חיתוך ותקופה",
     invBtn:"הפקת חשבונית", invTitle:"הפקת חשבונית", invEmail:"אימייל הלקוח לשליחת החשבונית", invSend:"אישור ושליחה", cancel:"ביטול",
     invPreview:"הצגת החשבונית לאישור", invLoading:"מחשבים את החשבונית מתוך הגיליון…", invNoLines:"אין שעות לחיוב בטווח הזה",
-    invPreviewErr:"לא הצלחנו לקבל את פרטי החשבונית. בדקו את החיבור ונסו שוב", invClientMail:"אימייל לחשבוניות", invMailSaved:"האימייל נשמר", invClientTax:"ח.פ / ע.מ", invTaxSaved:"ח.פ/ע.מ נשמר", errTaxId:"ח.פ/ע.מ = 9 ספרות", invNoTax:"חסר ח.פ/ע.מ — יש להשלים בהגדרות → רשימת לקוחות", invTaxLine:"ח.פ / ע.מ",
+    invPreviewErr:"לא הצלחנו לקבל את פרטי החשבונית. בדקו את החיבור ונסו שוב", invClientMail:"אימייל לחשבוניות", invMailSaved:"האימייל נשמר", invClientTax:"ח״פ / ע״מ", invTaxSaved:"ח״פ/ע״מ נשמר", errTaxId:"ח״פ/ע״מ = 9 ספרות", invNoTax:"חסר ח״פ/ע״מ — יש להשלים בהגדרות → רשימת לקוחות", invTaxLine:"ח״פ / ע״מ",
     thDate:"תאריך", thActivity:"פעילות", thHours:"שעות", thRate:"תעריף", thAmount:"סכום", subTotal:"סה\"כ לפני מע\"מ", vat:"מע\"מ", grandTotal:"סה\"כ לתשלום", hoursTotal:"סה\"כ שעות",
     invHint:"החשבונית מופקת ממערכת החשבוניות של המשרד לפי התעריף של הלקוח, ונשלחת למייל", invSent:"הבקשה נשלחה — החשבונית תגיע למייל בעוד רגע",
     invAllTime:"כל התקופה", invPeriod:"מ-{from} עד {to}", invFrom:"מ-{from}", invTo:"עד {to}", errEmail:"יש להזין אימייל תקין", errRange:"תאריך ההתחלה מאוחר מתאריך הסיום",
@@ -941,7 +941,7 @@ const K = {
 };
 /* Per-client billing details kept outside the client list itself (names stay plain strings):
    { "<client name>": { taxId: "515123456", email: "billing@client.co.il" } }.
-   The tax id (ח.פ / ע.מ) is the identifier shared with the sheet and the invoicing system. */
+   The tax id (ח״פ / ע״מ) is the identifier shared with the sheet and the invoicing system. */
 function clientMeta(){
   let m = load(K.clientMeta(state.org), null);
   if(!m){
