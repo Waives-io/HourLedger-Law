@@ -785,7 +785,7 @@ const I18N = {
     dashTitle:"דשבורד חיובי שעות", dashSub:"בחרו חיתוך ותקופה",
     invBtn:"הפקת חשבונית", invTitle:"הפקת חשבונית", invEmail:"אימייל הלקוח לשליחת החשבונית", invSend:"אישור ושליחה", cancel:"ביטול",
     invPreview:"הצגת החשבונית לאישור", invLoading:"מחשבים את החשבונית מתוך הגיליון…", invNoLines:"אין שעות לחיוב בטווח הזה",
-    invPreviewErr:"לא הצלחנו לקבל את פרטי החשבונית. בדקו את החיבור ונסו שוב", invClientMail:"אימייל לחשבוניות", invMailSaved:"האימייל נשמר", invClientTax:"ח״פ / ע״מ", invTaxSaved:"ח״פ/ע״מ נשמר", errTaxId:"ח״פ/ע״מ = 9 ספרות", invNoTax:"חסר ח״פ/ע״מ — יש להשלים בהגדרות → רשימת לקוחות", invTaxLine:"ח״פ / ע״מ",
+    invPreviewErr:"לא הצלחנו לקבל את פרטי החשבונית. בדקו את החיבור ונסו שוב", invClientMail:"אימייל לחשבוניות", invMailSaved:"האימייל נשמר", invClientTax:"ח״פ / ע״מ", invTaxSaved:"ח״פ/ע״מ נשמר", invTaxSavedSheet:"ח״פ/ע״מ נשמר — הלקוח נוסף לטבלת התעריפים בגיליון", errTaxId:"ח״פ/ע״מ = 9 ספרות", invNoTax:"חסר ח״פ/ע״מ — יש להשלים בהגדרות → רשימת לקוחות", invTaxLine:"ח״פ / ע״מ",
     thDate:"תאריך", thActivity:"פעילות", thHours:"שעות", thRate:"תעריף", thAmount:"סכום", subTotal:"סה\"כ לפני מע\"מ", vat:"מע\"מ", grandTotal:"סה\"כ לתשלום", hoursTotal:"סה\"כ שעות",
     invHint:"החשבונית מופקת ממערכת החשבוניות של המשרד לפי התעריף של הלקוח, ונשלחת למייל", invSent:"הבקשה נשלחה — החשבונית תגיע למייל בעוד רגע",
     invAllTime:"כל התקופה", invPeriod:"מ-{from} עד {to}", invFrom:"מ-{from}", invTo:"עד {to}", errEmail:"יש להזין אימייל תקין", errRange:"תאריך ההתחלה מאוחר מתאריך הסיום",
@@ -810,6 +810,8 @@ const I18N = {
     fromDate:"מתאריך", toDate:"עד תאריך", clearRange:"ניקוי",
     bdByCategory:"פירוט לפי קטגוריה", bdByClientDate:"פירוט לפי לקוח ותאריך",
     phOther:"פירוט — מה בוצע?", clientAddedList:"הלקוח נוסף לרשימה",
+    clientAddedSetup:"הלקוח נוסף לרשימה — להשלמת ההקמה (ח״פ/ע״מ ואימייל) יש להיכנס להגדרות → רשימת לקוחות",
+    clientNeedsSetup:"ללקוח הזה עדיין חסרים ח״פ/ע״מ ואימייל — משלימים בהגדרות → רשימת לקוחות",
     totalHours:"סך שעות", totalEntries:"דיווחים", searchPh:"חיפוש לקוח…",
     export:"ייצוא CSV", noData:"אין דיווחים להצגה", entries:"דיווחים", entry:"דיווח",
     edit:"עריכה", hoursShort:"ש׳",
@@ -876,7 +878,7 @@ const I18N = {
     dashTitle:"Hours dashboard", dashSub:"Choose a breakdown and a period",
     invBtn:"Create invoice", invTitle:"Create invoice", invEmail:"Client email for the invoice", invSend:"Approve & send", cancel:"Cancel",
     invPreview:"Show invoice for approval", invLoading:"Calculating the invoice from the sheet…", invNoLines:"No billable hours in this range",
-    invPreviewErr:"Could not fetch the invoice details. Check the connection and try again", invClientMail:"Invoice email", invMailSaved:"Email saved", invClientTax:"Company / VAT no.", invTaxSaved:"Company no. saved", errTaxId:"Company no. = 9 digits", invNoTax:"Missing company / VAT no. — add it in Settings → Clients", invTaxLine:"Company / VAT no.",
+    invPreviewErr:"Could not fetch the invoice details. Check the connection and try again", invClientMail:"Invoice email", invMailSaved:"Email saved", invClientTax:"Company / VAT no.", invTaxSaved:"Company no. saved", invTaxSavedSheet:"Company no. saved — client added to the rates sheet", errTaxId:"Company no. = 9 digits", invNoTax:"Missing company / VAT no. — add it in Settings → Clients", invTaxLine:"Company / VAT no.",
     thDate:"Date", thActivity:"Activity", thHours:"Hours", thRate:"Rate", thAmount:"Amount", subTotal:"Subtotal", vat:"VAT", grandTotal:"Total due", hoursTotal:"Total hours",
     invHint:"The invoice is produced by the office's invoicing system at the client's rate and emailed", invSent:"Request sent — the invoice will arrive by email shortly",
     invAllTime:"All time", invPeriod:"{from} to {to}", invFrom:"from {from}", invTo:"to {to}", errEmail:"Enter a valid email", errRange:"Start date is after end date",
@@ -901,6 +903,8 @@ const I18N = {
     fromDate:"From", toDate:"To", clearRange:"Clear",
     bdByCategory:"Breakdown by activity", bdByClientDate:"Breakdown by client and date",
     phOther:"Details — what was done?", clientAddedList:"Client added to the list",
+    clientAddedSetup:"Client added — finish the setup (company no. and email) in Settings → Clients",
+    clientNeedsSetup:"This client still needs a company no. and email — Settings → Clients",
     totalHours:"Total hours", totalEntries:"Entries", searchPh:"Search client…",
     export:"Export CSV", noData:"No entries to display", entries:"entries", entry:"entry",
     edit:"Edit", hoursShort:"h",
@@ -957,6 +961,8 @@ function setClientMeta(name, patch){
   m[name] = Object.assign({ taxId: "", email: "" }, m[name] || {}, patch);
   store(K.clientMeta(state.org), m);
   if(state.cloud) cloudQueue({ t:"clients", op:"upsert", row:{ org_id: state.orgInfo.id, name, tax_id: m[name].taxId || null, email: m[name].email || null } });
+  // the office's rates sheet is keyed by tax id: make sure it has a row for this client
+  if(FIRM.invoicing && validTaxId(m[name].taxId)) sendEvent({ action:"client", client: name, clientId: m[name].taxId, email: m[name].email || "", org: state.org || "", orgName: orgCfg().he });
 }
 const clientTaxId = name => (clientMeta()[name] || {}).taxId || "";
 const validTaxId = v => /^\d{9}$/.test(v);
@@ -1726,7 +1732,7 @@ function createForm(root, prefix, mode, dateSlot){
       saveOrgData();
       renderSettings();
       addedClient = options[i].value;
-      toast(t().clientAddedList);
+      toast(FIRM.invoicing ? t().clientAddedSetup : t().clientAddedList);
     }
     checkClient();
     cliEl.blur();   // leave the field so the list doesn't pop open again
@@ -1743,7 +1749,12 @@ function createForm(root, prefix, mode, dateSlot){
     if(list.some(c => norm(c) === q)){
       if(addedClient && norm(addedClient) === q){
         noteEl.className = "note info";
-        noteEl.textContent = "✓ " + t().clientAddedList;
+        noteEl.textContent = "✓ " + (FIRM.invoicing ? t().clientAddedSetup : t().clientAddedList);
+        noteEl.classList.remove("hidden");
+      }else if(FIRM.invoicing && !validTaxId(clientTaxId(raw))){
+        // known client that was never completed in Settings — remind, don't block
+        noteEl.className = "note info";
+        noteEl.textContent = t().clientNeedsSetup;
         noteEl.classList.remove("hidden");
       }
       return;   // an existing client needs no remark
@@ -2187,7 +2198,7 @@ document.addEventListener("change", e => {
     tax.value = v;
     if(v && !validTaxId(v)){ tax.setCustomValidity(t().errTaxId); tax.reportValidity(); tax.setCustomValidity(""); return; }
     setClientMeta(tax.dataset.taxClient, { taxId: v });
-    toast(t().invTaxSaved);
+    toast(validTaxId(v) ? t().invTaxSavedSheet : t().invTaxSaved);
     renderDash();   // the invoice button depends on it
   }
 });
