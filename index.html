@@ -813,6 +813,7 @@ const I18N = {
     phOther:"פירוט — מה בוצע?", clientAddedList:"הלקוח נוסף לרשימה",
     clientAddedSetup:"הלקוח נוסף לרשימה — להשלמת ההקמה (ח״פ/ע״מ ואימייל) יש להיכנס להגדרות → רשימת לקוחות",
     clientNeedsSetup:"ללקוח הזה עדיין חסרים ח״פ/ע״מ ואימייל — משלימים בהגדרות → רשימת לקוחות",
+    rateMissing:"הלקוח לא היה בטבלת התעריפים — נוספה לו שורה בגיליון. יש להזין לו תעריף",
     totalHours:"סך שעות", totalEntries:"דיווחים", searchPh:"חיפוש לקוח…",
     export:"ייצוא CSV", noData:"אין דיווחים להצגה", entries:"דיווחים", entry:"דיווח",
     edit:"עריכה", hoursShort:"ש׳",
@@ -906,6 +907,7 @@ const I18N = {
     phOther:"Details — what was done?", clientAddedList:"Client added to the list",
     clientAddedSetup:"Client added — finish the setup (company no. and email) in Settings → Clients",
     clientNeedsSetup:"This client still needs a company no. and email — Settings → Clients",
+    rateMissing:"The client was not in the rates sheet — a row was added. Please fill in its rate",
     totalHours:"Total hours", totalEntries:"Entries", searchPh:"Search client…",
     export:"Export CSV", noData:"No entries to display", entries:"entries", entry:"entry",
     edit:"Edit", hoursShort:"h",
@@ -1576,6 +1578,11 @@ function sendEvent(extra){
   const send = ct => fetch(url, { method:"POST", headers:{"Content-Type":ct}, body });
   send("application/json").catch(() => send("text/plain;charset=UTF-8").catch(() => {}));
 }
+/* Replies from the office's Make scenario (plain text). "rate_missing" = the client was not in the rates sheet,
+   a row was added for it and the office must fill in the rate. */
+function hookReply(txt){
+  if(FIRM.invoicing && /rate_missing/.test(txt || "")) toast(t().rateMissing, 6000);
+}
 let flushing = false;
 async function flushOutbox(){
   const url = orgCfg().webhook;
@@ -1587,11 +1594,11 @@ async function flushOutbox(){
     const body = JSON.stringify(item);
     try{
       const res = await fetch(url, { method:"POST", headers:{"Content-Type":"application/json"}, body });
-      ok = res.ok;
+      ok = res.ok; if(ok) hookReply(await res.text().catch(() => ""));
     }catch(e){
       try{
         const res2 = await fetch(url, { method:"POST", headers:{"Content-Type":"text/plain;charset=UTF-8"}, body });
-        ok = res2.ok;
+        ok = res2.ok; if(ok) hookReply(await res2.text().catch(() => ""));
       }catch(e2){ ok = false; }
     }
     if(!ok) break;
@@ -1999,7 +2006,9 @@ function saveEntry(){
   rows.forEach(r => state.records.push(r));
   saveOrgData();
   rows.forEach(r => { cloudRec(r, "upsert"); queue(r, "create"); });
-  toast(rows.length > 1 ? `${t().savedN} ${rows.length}` : t().saved);
+  const savedMsg = rows.length > 1 ? `${t().savedN} ${rows.length}` : t().saved;
+  if(FIRM.invoicing && !validTaxId(clientTaxId(v.client))) toast(`${savedMsg} · ${t().clientNeedsSetup}`, 6000);
+  else toast(savedMsg);
   entryForm.reset();
   renderRecent();
   renderSettings();
@@ -2059,8 +2068,10 @@ function rowHTML(r, showClient){
   </div>`;
 }
 function renderRecent(){
+  // "recent" = the last entries *reported*, not the latest dates — a back-dated entry still shows up here
+  const key = r => (r.createdAt || r.date) + r.date;
   const recs = state.records.slice()
-    .sort((a,b) => (b.date + (b.createdAt||"")).localeCompare(a.date + (a.createdAt||"")))
+    .sort((a,b) => key(b).localeCompare(key(a)))
     .slice(0,6);
   $("#recentList").innerHTML = recs.length ? recs.map(r => rowHTML(r, true)).join("") : `<div class="empty">${esc(t().noData)}</div>`;
 }
@@ -2428,12 +2439,12 @@ function closeModal(){
   document.body.style.overflow = "";
 }
 let toastTimer = null;
-function toast(msg){
+function toast(msg, ms){
   $("#toastMsg").textContent = msg;
   const el = $("#toast");
   el.classList.add("show");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove("show"), 2400);
+  toastTimer = setTimeout(() => el.classList.remove("show"), ms || 2400);
 }
 function exportCSV(){
   const C = t().csv;
