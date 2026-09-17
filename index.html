@@ -273,7 +273,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .bd-row .bd{flex:none;color:var(--ink-faint);font-weight:600;font-variant-numeric:tabular-nums;font-size:12.5px}
 .lother{margin-top:6px;padding:9px 12px;font-size:14px;font-weight:500}
 .range-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:end;margin-bottom:16px}
-.range-inputs label{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:12px;font-weight:700;color:var(--ink-faint)}
+.range-inputs label{display:flex;flex-direction:column;gap:4px;min-width:0;font-size:12px;font-weight:700;color:var(--ink-faint);position:relative}
 .range-inputs .control{padding:9px 10px;font-size:14px;min-width:0}
 .breakdown{padding:8px 14px 10px;background:var(--gold-soft);border-bottom:1px solid var(--line)}
 .bd-title{font-size:11.5px;color:var(--ink-faint);font-weight:700;margin-bottom:4px}
@@ -510,6 +510,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 
       <div class="seg" role="group" aria-label="mode">
         <button type="button" id="modeClient" aria-pressed="true" data-i18n="byClient">לפי לקוח</button>
+        <button type="button" id="modeDate" aria-pressed="false" data-i18n="byDate">לפי תאריך</button>
         <button type="button" id="modeCat" aria-pressed="false" data-i18n="byCategory">לפי קטגוריה</button>
       </div>
 
@@ -1318,8 +1319,9 @@ function savePrefs(){
   if(state.user) store(K.prefs(state.user), { dashMode: state.dashMode });
 }
 function applyDashPrefs(){
-  if(state.dashMode !== "cat") state.dashMode = "client";   // "date" mode was retired
+  if(state.dashMode !== "cat" && state.dashMode !== "date") state.dashMode = "client";
   $("#modeClient").setAttribute("aria-pressed", state.dashMode === "client");
+  $("#modeDate").setAttribute("aria-pressed", state.dashMode === "date");
   $("#modeCat").setAttribute("aria-pressed", state.dashMode === "cat");
   syncRangeUI();
 }
@@ -2094,7 +2096,7 @@ function subTreeHTML(groupKey, rows, mode){
         <span class="th">${fmtHours(sumHours(by[name]))} ${esc(t().hoursShort)}</span>
       </button>
       <div class="tree-lines ${open ? "" : "hidden"}">${lines.map(r => `<div class="tline">
-        <span class="tdate">${esc(fmtDate(r.date))}</span>
+        ${mode === "date" ? "" : `<span class="tdate">${esc(fmtDate(r.date))}</span>`}
         ${mode === "client" ? "" : `<span class="tcat">${esc(recLabel(r))}</span>`}
         ${r.notes ? `<span class="tnote">${esc(r.notes)}</span>` : `<span class="tnote"></span>`}
         <span class="thours">${fmtHours(r.hours)}</span>
@@ -2108,11 +2110,12 @@ function renderDash(){
   const mode = state.dashMode;
   const groups = {};
   recs.forEach(r => {
-    const key = mode === "client" ? r.client : r.category;
+    const key = mode === "client" ? r.client : mode === "date" ? r.date : r.category;
     (groups[key] = groups[key] || []).push(r);
   });
   const keys = Object.keys(groups).sort(mode === "client"
     ? (a,b) => a.localeCompare(b, "he")
+    : mode === "date" ? (a,b) => b.localeCompare(a)   // newest day first
     : (a,b) => sumHours(groups[b]) - sumHours(groups[a]));
 
   const body = $("#dashBody");
@@ -2122,7 +2125,7 @@ function renderDash(){
     const rows = groups[k].slice().sort((a,b) => b.date.localeCompare(a.date));
     const sum = sumHours(rows);
     const open = !!state.openGroups[k];
-    const name = mode === "client" ? k : catLabel(k);
+    const name = mode === "client" ? k : mode === "date" ? fmtDate(k) : catLabel(k);
     const count = rows.length + " " + (rows.length === 1 ? t().entry : t().entries);
     const tools = mode === "client" && FIRM.invoicing && orgCfg().webhook
       ? `<div class="group-tools"><button type="button" class="btn btn-ghost btn-sm" data-invoice="${esc(k)}"${validTaxId(clientTaxId(k)) ? "" : ` data-notax="1" title="${esc(t().invNoTax)}"`}>${esc(t().invBtn)} · ${esc(k)}</button></div>` : "";
@@ -2499,6 +2502,10 @@ $("#modeClient").addEventListener("click", () => {
 });
 $("#modeCat").addEventListener("click", () => {
   state.dashMode = "cat"; state.openGroups = {};
+  applyDashPrefs(); savePrefs(); renderDash();
+});
+$("#modeDate").addEventListener("click", () => {
+  state.dashMode = "date"; state.openGroups = {};
   applyDashPrefs(); savePrefs(); renderDash();
 });
 function setRange(from, to, custom){
