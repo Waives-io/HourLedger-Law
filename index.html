@@ -97,9 +97,10 @@ header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.90);backdro
 main{padding-top:18px}
 .card{background:var(--white);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow);padding:20px 18px;margin-bottom:16px}
 .card-title{display:flex;align-items:center;gap:10px;margin:0 0 4px;font-size:19px;font-weight:700}
-.entry-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.entry-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
 .entry-head .card-title{margin:0}
-.entry-date{flex:none;position:relative}
+.entry-date{flex:none;position:relative;display:flex;align-items:center;gap:8px}
+.entry-date-label{font-size:13.5px;font-weight:600;color:var(--ink-soft);white-space:nowrap}
 .entry-date .err{position:absolute;inset-inline-end:0;top:100%;white-space:nowrap}
 .card-title::before{content:"";width:4px;height:18px;border-radius:2px;background:var(--gold);flex:none}
 .card-sub{margin:0 0 18px;font-size:13.5px;color:var(--ink-soft)}
@@ -790,7 +791,7 @@ const I18N = {
     invHint:"החשבונית מופקת ממערכת החשבוניות של המשרד לפי התעריף של הלקוח, ונשלחת למייל", invSent:"הבקשה נשלחה — החשבונית תגיע למייל בעוד רגע",
     invAllTime:"כל התקופה", invPeriod:"מ-{from} עד {to}", invFrom:"מ-{from}", invTo:"עד {to}", errEmail:"יש להזין אימייל תקין", errRange:"תאריך ההתחלה מאוחר מתאריך הסיום",
     navEntry:"דיווח שעות", navDash:"דשבורד", navSettings:"הגדרות",
-    fDate:"תאריך דיווח", fClient:"שם הלקוח", fCats:"עבור מה לחייב",
+    fDate:"תאריך דיווח", fDatePick:"בחר תאריך לדיווח", fClient:"שם הלקוח", fCats:"עבור מה לחייב",
     fCatsHint:"ניתן לבחור יותר מקטגוריה אחת", fHours:"מספר שעות",
     fHoursHint:"ברבעי שעה", fNotes:"הערות", hoursWord:"שעות",
     fLines:"שעות לכל חיוב", fLinesHint:"שורה נפרדת בגיליון לכל חיוב",
@@ -883,7 +884,7 @@ const I18N = {
     invHint:"The invoice is produced by the office's invoicing system at the client's rate and emailed", invSent:"Request sent — the invoice will arrive by email shortly",
     invAllTime:"All time", invPeriod:"{from} to {to}", invFrom:"from {from}", invTo:"to {to}", errEmail:"Enter a valid email", errRange:"Start date is after end date",
     navEntry:"Time entry", navDash:"Dashboard", navSettings:"Settings",
-    fDate:"Entry date", fClient:"Client name", fCats:"Billable activity",
+    fDate:"Entry date", fDatePick:"Pick the entry date", fClient:"Client name", fCats:"Billable activity",
     fCatsHint:"More than one may be selected", fHours:"Hours",
     fHoursHint:"Quarter-hour steps", fNotes:"Notes", hoursWord:"hours",
     fLines:"Hours per activity", fLinesHint:"a separate sheet row per activity",
@@ -1618,7 +1619,7 @@ window.addEventListener("online", flushOutbox);
    ============================================================ */
 function dateFieldHTML(p, compact){
   return compact
-    ? `<input type="date" id="${p}Date" class="control" data-f="date" aria-label="${esc(t().fDate)}"><span class="err" data-e="date"></span>`
+    ? `<label for="${p}Date" class="entry-date-label" data-i18n="fDatePick">${esc(t().fDatePick)}</label><input type="date" id="${p}Date" class="control" data-f="date" aria-label="${esc(t().fDatePick)}"><span class="err" data-e="date"></span>`
     : `<div class="field">
     <label for="${p}Date">${esc(t().fDate)}</label>
     <input type="date" id="${p}Date" class="control" data-f="date">
@@ -2645,7 +2646,7 @@ const DP = {
     pop.className = "dp-pop";
     pop.setAttribute("role", "dialog");
     const render = () => {
-      const L = t();
+      const L = t(), rtl = state.lang === "he";
       const first = new Date(y, m, 1).getDay();          // 0 = Sunday, the first column
       const days = new Date(y, m + 1, 0).getDate();
       const today = todayISO();
@@ -2656,14 +2657,15 @@ const DP = {
         cells += `<button type="button" class="dp-cell${v === el.value ? " dp-sel" : ""}${v === today ? " dp-today" : ""}" data-v="${v}">${d}</button>`;
       }
       pop.innerHTML = `<div class="dp-head">
-          <button type="button" class="dp-nav" data-nav="-1" aria-label="prev">‹</button>
+          <button type="button" class="dp-nav" data-nav="-1" aria-label="prev">${rtl ? "›" : "‹"}</button>
           <span class="dp-title">${esc(L.months[m])} ${y}</span>
-          <button type="button" class="dp-nav" data-nav="1" aria-label="next">›</button>
+          <button type="button" class="dp-nav" data-nav="1" aria-label="next">${rtl ? "‹" : "›"}</button>
         </div>
         <div class="dp-grid">${L.dow.map(d => `<span class="dp-dow">${esc(d)}</span>`).join("")}${cells}</div>
         <button type="button" class="dp-todaybtn" data-v="${today}">${esc(L.today)}</button>`;
     };
     pop.addEventListener("click", e => {
+      e.stopPropagation();   // a click inside the popup is never "outside" — even after render() replaced the button
       const nav = e.target.closest("[data-nav]");
       if(nav){ m += +nav.dataset.nav; if(m < 0){ m = 11; y--; } if(m > 11){ m = 0; y++; } render(); return; }
       const c = e.target.closest("[data-v]");
@@ -2677,6 +2679,10 @@ const DP = {
     render();
     el._dpBtn.insertAdjacentElement("afterend", pop);
     DP.open = pop;
+    // keep the popup inside the viewport on narrow screens (physical left/right: works in both directions)
+    const b = pop.getBoundingClientRect(), pad = 8;
+    if(b.right > innerWidth - pad){ pop.style.left = (pop.offsetLeft - (b.right - innerWidth + pad)) + "px"; pop.style.right = "auto"; }
+    else if(b.left < pad){ pop.style.left = (pop.offsetLeft + pad - b.left) + "px"; pop.style.right = "auto"; }
   }
 };
 function attachDatePicker(el){
