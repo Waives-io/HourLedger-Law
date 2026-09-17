@@ -250,6 +250,10 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .inv-grid label,.inv-mail label{display:block;font-weight:700;font-size:13.5px;margin-bottom:6px}
 .inv-mail{margin-top:14px}
 .list-item .lmail{flex:1.1;min-width:0;padding:7px 10px;font-size:13px;direction:ltr;text-align:left}
+.list-item .ltax{flex:0 0 118px;padding:7px 10px;font-size:13px;direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
+.list-item-billing{flex-wrap:wrap}
+.list-item-billing .lname{flex-basis:100%}
+@media (max-width:520px){.list-item-billing .lmail{flex-basis:100%}}
 .inv-preview{margin-top:16px;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
 .inv-preview table{width:100%;border-collapse:collapse;font-size:13.5px}
 .inv-preview th,.inv-preview td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
@@ -781,7 +785,7 @@ const I18N = {
     dashTitle:"דשבורד חיובי שעות", dashSub:"בחרו חיתוך ותקופה",
     invBtn:"הפקת חשבונית", invTitle:"הפקת חשבונית", invEmail:"אימייל הלקוח לשליחת החשבונית", invSend:"אישור ושליחה", cancel:"ביטול",
     invPreview:"הצגת החשבונית לאישור", invLoading:"מחשבים את החשבונית מתוך הגיליון…", invNoLines:"אין שעות לחיוב בטווח הזה",
-    invPreviewErr:"לא הצלחנו לקבל את פרטי החשבונית. בדקו את החיבור ונסו שוב", invClientMail:"אימייל לחשבוניות", invMailSaved:"האימייל נשמר",
+    invPreviewErr:"לא הצלחנו לקבל את פרטי החשבונית. בדקו את החיבור ונסו שוב", invClientMail:"אימייל לחשבוניות", invMailSaved:"האימייל נשמר", invClientTax:"ח.פ / ע.מ", invTaxSaved:"ח.פ/ע.מ נשמר", errTaxId:"ח.פ/ע.מ = 9 ספרות", invNoTax:"חסר ח.פ/ע.מ — יש להשלים בהגדרות → רשימת לקוחות", invTaxLine:"ח.פ / ע.מ",
     thDate:"תאריך", thActivity:"פעילות", thHours:"שעות", thRate:"תעריף", thAmount:"סכום", subTotal:"סה\"כ לפני מע\"מ", vat:"מע\"מ", grandTotal:"סה\"כ לתשלום", hoursTotal:"סה\"כ שעות",
     invHint:"החשבונית מופקת ממערכת החשבוניות של המשרד לפי התעריף של הלקוח, ונשלחת למייל", invSent:"הבקשה נשלחה — החשבונית תגיע למייל בעוד רגע",
     invAllTime:"כל התקופה", invPeriod:"מ-{from} עד {to}", invFrom:"מ-{from}", invTo:"עד {to}", errEmail:"יש להזין אימייל תקין", errRange:"תאריך ההתחלה מאוחר מתאריך הסיום",
@@ -872,7 +876,7 @@ const I18N = {
     dashTitle:"Hours dashboard", dashSub:"Choose a breakdown and a period",
     invBtn:"Create invoice", invTitle:"Create invoice", invEmail:"Client email for the invoice", invSend:"Approve & send", cancel:"Cancel",
     invPreview:"Show invoice for approval", invLoading:"Calculating the invoice from the sheet…", invNoLines:"No billable hours in this range",
-    invPreviewErr:"Could not fetch the invoice details. Check the connection and try again", invClientMail:"Invoice email", invMailSaved:"Email saved",
+    invPreviewErr:"Could not fetch the invoice details. Check the connection and try again", invClientMail:"Invoice email", invMailSaved:"Email saved", invClientTax:"Company / VAT no.", invTaxSaved:"Company no. saved", errTaxId:"Company no. = 9 digits", invNoTax:"Missing company / VAT no. — add it in Settings → Clients", invTaxLine:"Company / VAT no.",
     thDate:"Date", thActivity:"Activity", thHours:"Hours", thRate:"Rate", thAmount:"Amount", subTotal:"Subtotal", vat:"VAT", grandTotal:"Total due", hoursTotal:"Total hours",
     invHint:"The invoice is produced by the office's invoicing system at the client's rate and emailed", invSent:"Request sent — the invoice will arrive by email shortly",
     invAllTime:"All time", invPeriod:"{from} to {to}", invFrom:"from {from}", invTo:"to {to}", errEmail:"Enter a valid email", errRange:"Start date is after end date",
@@ -932,8 +936,30 @@ const K = {
   hook: o => "hourledger.webhook.v1." + o,
   migrated: o => "hourledger.migrated.v1." + o,
   prefs: e => "hourledger.prefs.v1." + e,
-  invMail: o => "hourledger.invmail.v1." + o
+  invMail: o => "hourledger.invmail.v1." + o,          // legacy (email only) — migrated into clientMeta on first read
+  clientMeta: o => "hourledger.clientmeta.v1." + o
 };
+/* Per-client billing details kept outside the client list itself (names stay plain strings):
+   { "<client name>": { taxId: "515123456", email: "billing@client.co.il" } }.
+   The tax id (ח.פ / ע.מ) is the identifier shared with the sheet and the invoicing system. */
+function clientMeta(){
+  let m = load(K.clientMeta(state.org), null);
+  if(!m){
+    m = {};
+    const old = load(K.invMail(state.org), {}) || {};
+    Object.keys(old).forEach(n => { m[n] = { taxId: "", email: old[n] }; });
+    store(K.clientMeta(state.org), m);
+  }
+  return m;
+}
+function setClientMeta(name, patch){
+  const m = clientMeta();
+  m[name] = Object.assign({ taxId: "", email: "" }, m[name] || {}, patch);
+  store(K.clientMeta(state.org), m);
+  if(state.cloud) cloudQueue({ t:"clients", op:"upsert", row:{ org_id: state.orgInfo.id, name, tax_id: m[name].taxId || null, email: m[name].email || null } });
+}
+const clientTaxId = name => (clientMeta()[name] || {}).taxId || "";
+const validTaxId = v => /^\d{9}$/.test(v);
 function load(key, fallback){
   try{ const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); }
   catch(e){ return fallback; }
@@ -1405,8 +1431,8 @@ async function pullCloud(){
   const org = state.orgInfo.id;
   try{
     const [c, k, r, o] = await Promise.all([
-      sb.from("clients").select("name,email").eq("org_id", org).order("name")
-        .then(r => r.error ? sb.from("clients").select("name").eq("org_id", org).order("name") : r),   // older schema without the email column
+      sb.from("clients").select("name,tax_id,email").eq("org_id", org).order("name")
+        .then(r => r.error ? sb.from("clients").select("name").eq("org_id", org).order("name") : r),   // older schema without the billing columns
       sb.from("categories").select("id,he,en,sort").eq("org_id", org).order("sort"),
       sb.from("records").select("*").eq("org_id", org),
       sb.from("orgs").select("name,webhook").eq("id", org).maybeSingle()
@@ -1415,9 +1441,9 @@ async function pullCloud(){
     if(o.data){ state.orgInfo.name = o.data.name; state.orgInfo.webhook = o.data.webhook || ""; upsertLocalAccount({ email: state.user, firm: o.data.name, webhook: o.data.webhook || "" }); }
     state.clients = c.data.map(x => x.name);
     if(c.data.some(x => "email" in x)){
-      const mails = load(K.invMail(state.org), {}) || {};
-      c.data.forEach(x => { if(x.email) mails[x.name] = x.email; });
-      store(K.invMail(state.org), mails);
+      const m = clientMeta();
+      c.data.forEach(x => { if(x.email || x.tax_id) m[x.name] = { taxId: x.tax_id || "", email: x.email || "" }; });
+      store(K.clientMeta(state.org), m);
     }
     if(k.data.length){
       state.categories = k.data.map(x => ({ id:x.id, he:x.he, en:x.en }));
@@ -1512,6 +1538,7 @@ function payloadFor(rec, action){
     date: rec.date,
     groupId: rec.groupId || rec.id,
     client: rec.client,
+    clientId: clientTaxId(rec.client),
     category: recLabelHe(rec),
     categoryId: rec.category,
     otherText: rec.otherText || "",
@@ -2075,7 +2102,7 @@ function renderDash(){
     const name = mode === "client" ? k : catLabel(k);
     const count = rows.length + " " + (rows.length === 1 ? t().entry : t().entries);
     const tools = mode === "client" && FIRM.invoicing && orgCfg().webhook
-      ? `<div class="group-tools"><button type="button" class="btn btn-ghost btn-sm" data-invoice="${esc(k)}">${esc(t().invBtn)} · ${esc(k)}</button></div>` : "";
+      ? `<div class="group-tools"><button type="button" class="btn btn-ghost btn-sm" data-invoice="${esc(k)}"${validTaxId(clientTaxId(k)) ? "" : ` data-notax="1" title="${esc(t().invNoTax)}"`}>${esc(t().invBtn)} · ${esc(k)}</button></div>` : "";
     const inner = subTreeHTML(k, rows, mode) + tools;
     return `<div class="group">
       <button type="button" class="group-head" data-group="${esc(k)}" aria-expanded="${open}">
@@ -2095,11 +2122,12 @@ function renderSettings(){
     usedClients[r.client] = (usedClients[r.client]||0) + 1;
     usedCats[r.category] = (usedCats[r.category]||0) + 1;
   });
-  const mails = load(K.invMail(state.org), {}) || {};
+  const meta = FIRM.invoicing ? clientMeta() : {};
   $("#clientList").innerHTML = state.clients.length
-    ? state.clients.map(c => `<div class="list-item">
+    ? state.clients.map(c => `<div class="list-item${FIRM.invoicing ? " list-item-billing" : ""}">
         <span class="lname">${esc(c)}</span>
-        ${FIRM.invoicing ? `<input type="email" class="control lmail" data-mail-client="${esc(c)}" value="${esc(mails[c] || "")}" placeholder="${esc(t().invClientMail)}" autocomplete="off">` : ""}
+        ${FIRM.invoicing ? `<input type="text" inputmode="numeric" class="control ltax" data-tax-client="${esc(c)}" value="${esc((meta[c] || {}).taxId || "")}" placeholder="${esc(t().invClientTax)}" maxlength="9" autocomplete="off">
+        <input type="email" class="control lmail" data-mail-client="${esc(c)}" value="${esc((meta[c] || {}).email || "")}" placeholder="${esc(t().invClientMail)}" autocomplete="off">` : ""}
         ${usedClients[c] ? `<span class="lused">${usedClients[c]} ${esc(t().inUse)}</span>` : ""}
         <button type="button" class="lx" data-del-client="${esc(c)}" aria-label="${esc(t().delete)}">✕</button>
       </div>`).join("")
@@ -2146,19 +2174,22 @@ function addClient(){
   toast(added > 1 ? `${t().clientsAdded} ${added}` : t().clientAdded);
   if(dupes) err.textContent = `${t().skippedDupes} ${dupes}`;
 }
-function setClientMail(name, email){
-  const mails = load(K.invMail(state.org), {}) || {};
-  if(email) mails[name] = email; else delete mails[name];
-  store(K.invMail(state.org), mails);
-  if(state.cloud) cloudQueue({ t:"clients", op:"upsert", row:{ org_id: state.orgInfo.id, name, email: email || null } });
-}
 document.addEventListener("change", e => {
-  const inp = e.target.closest("[data-mail-client]");
-  if(!inp) return;
-  const v = inp.value.trim();
-  if(v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ inp.setCustomValidity("x"); inp.reportValidity(); inp.setCustomValidity(""); return; }
-  setClientMail(inp.dataset.mailClient, v);
-  toast(t().invMailSaved);
+  const mail = e.target.closest("[data-mail-client]"), tax = e.target.closest("[data-tax-client]");
+  if(mail){
+    const v = mail.value.trim();
+    if(v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ mail.setCustomValidity("x"); mail.reportValidity(); mail.setCustomValidity(""); return; }
+    setClientMeta(mail.dataset.mailClient, { email: v });
+    toast(t().invMailSaved);
+  }
+  if(tax){
+    const v = tax.value.replace(/\D/g, "");
+    tax.value = v;
+    if(v && !validTaxId(v)){ tax.setCustomValidity(t().errTaxId); tax.reportValidity(); tax.setCustomValidity(""); return; }
+    setClientMeta(tax.dataset.taxClient, { taxId: v });
+    toast(t().invTaxSaved);
+    renderDash();   // the invoice button depends on it
+  }
 });
 function removeClient(name){
   if(!confirm(t().confirmRemoveClient)) return;
@@ -2283,10 +2314,10 @@ function invReset(){
 }
 function openInvoice(client){
   invClient = client;
-  $("#invClient").textContent = client;
+  $("#invClient").textContent = `${client} · ${t().invTaxLine} ${clientTaxId(client)}`;
   $("#invFrom").value = state.rangeFrom; $("#invTo").value = state.rangeTo;
   DP.refresh($("#invFrom")); DP.refresh($("#invTo"));
-  $("#invEmail").value = (load(K.invMail(state.org), {}) || {})[client] || "";
+  $("#invEmail").value = (clientMeta()[client] || {}).email || "";
   invReset();
   $("#invBg").classList.remove("hidden");
   document.body.style.overflow = "hidden";
@@ -2309,7 +2340,7 @@ const money = (n, cur) => (Math.round(n * 100) / 100).toLocaleString(state.lang 
    (plain text, one row per line — no JSON building inside Make). */
 async function fetchPreview(inp){
   const url = orgCfg().webhook;
-  const body = new URLSearchParams({ action:"invoice_preview", client: invClient, from: inp.from, to: inp.to, org: state.org || "", user: state.user || "" });
+  const body = new URLSearchParams({ action:"invoice_preview", client: invClient, clientId: clientTaxId(invClient), from: inp.from, to: inp.to, org: state.org || "", user: state.user || "" });
   const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 30000);
   try{
     const res = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body, signal: ctrl.signal });
@@ -2367,9 +2398,8 @@ function closeInvoice(){
 }
 function sendInvoice(){
   const inp = invInputs(); if(!inp || !invPreviewData) return;
-  const mails = load(K.invMail(state.org), {}) || {};
-  if(mails[invClient] !== inp.email) setClientMail(invClient, inp.email);
-  sendEvent({ action:"invoice", client: invClient, from: inp.from, to: inp.to, period: inp.period, email: inp.email, user: state.user || "", org: state.org || "", orgName: orgCfg().he });
+  if((clientMeta()[invClient] || {}).email !== inp.email) setClientMeta(invClient, { email: inp.email });
+  sendEvent({ action:"invoice", client: invClient, clientId: clientTaxId(invClient), from: inp.from, to: inp.to, period: inp.period, email: inp.email, user: state.user || "", org: state.org || "", orgName: orgCfg().he });
   closeInvoice();
   toast(t().invSent);
 }
@@ -2572,7 +2602,7 @@ document.addEventListener("click", e => {
   const head = e.target.closest("[data-group]");
   if(head){ state.openGroups[head.dataset.group] = !state.openGroups[head.dataset.group]; renderDash(); return; }
   const inv = e.target.closest("[data-invoice]");
-  if(inv){ openInvoice(inv.dataset.invoice); return; }
+  if(inv){ if(inv.dataset.notax){ toast(t().invNoTax); return; } openInvoice(inv.dataset.invoice); return; }
   const ed = e.target.closest("[data-edit]");
   if(ed){ openModal(ed.dataset.edit); return; }
   const del = e.target.closest("[data-del]");

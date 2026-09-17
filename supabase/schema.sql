@@ -127,3 +127,4 @@ create policy "records: org" on public.records for all
 -- 17.9.2026: default invoice email per client (used by the dashboard "create invoice" flow).
 -- Existing projects: run this line once in the SQL editor.
 alter table public.clients add column if not exists email text;
+alter table public.clients add column if not exists tax_id text;   -- ח.פ / ע.מ, the billing identifier
