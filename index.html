@@ -766,7 +766,7 @@ const I18N = {
     dashTitle:"דשבורד חיובי שעות", dashSub:"בחרו חיתוך ותקופה",
     invBtn:"הפקת חשבונית", invTitle:"הפקת חשבונית", invEmail:"אימייל הלקוח לשליחת החשבונית", invSend:"הפקה ושליחה", cancel:"ביטול",
     invHint:"החשבונית מופקת ממערכת החשבוניות של המשרד לפי התעריף של הלקוח, ונשלחת למייל", invSent:"הבקשה נשלחה — החשבונית תגיע למייל בעוד רגע",
-    invAllTime:"כל התקופה", errEmail:"יש להזין אימייל תקין", errRange:"תאריך ההתחלה מאוחר מתאריך הסיום",
+    invAllTime:"כל התקופה", invPeriod:"מ-{from} עד {to}", invFrom:"מ-{from}", invTo:"עד {to}", errEmail:"יש להזין אימייל תקין", errRange:"תאריך ההתחלה מאוחר מתאריך הסיום",
     navEntry:"דיווח שעות", navDash:"דשבורד", navSettings:"הגדרות",
     fDate:"תאריך דיווח", fClient:"שם הלקוח", fCats:"עבור מה לחייב",
     fCatsHint:"ניתן לבחור יותר מקטגוריה אחת", fHours:"מספר שעות",
@@ -854,7 +854,7 @@ const I18N = {
     dashTitle:"Hours dashboard", dashSub:"Choose a breakdown and a period",
     invBtn:"Create invoice", invTitle:"Create invoice", invEmail:"Client email for the invoice", invSend:"Create & send", cancel:"Cancel",
     invHint:"The invoice is produced by the office's invoicing system at the client's rate and emailed", invSent:"Request sent — the invoice will arrive by email shortly",
-    invAllTime:"All time", errEmail:"Enter a valid email", errRange:"Start date is after end date",
+    invAllTime:"All time", invPeriod:"{from} to {to}", invFrom:"from {from}", invTo:"to {to}", errEmail:"Enter a valid email", errRange:"Start date is after end date",
     navEntry:"Time entry", navDash:"Dashboard", navSettings:"Settings",
     fDate:"Entry date", fClient:"Client name", fCats:"Billable activity",
     fCatsHint:"More than one may be selected", fHours:"Hours",
@@ -2254,7 +2254,11 @@ function sendInvoice(){
   if(from && to && from > to){ err.textContent = t().errRange; return; }
   const mails = load(K.invMail(state.org), {}) || {};
   mails[invClient] = email; store(K.invMail(state.org), mails);
-  const period = from || to ? `${from ? fmtDate(from) : "…"} – ${to ? fmtDate(to) : "…"}` : t().invAllTime;
+  // Hebrew words around the dates keep the order readable inside an RTL PDF
+  const period = from && to ? t().invPeriod.replace("{from}", fmtDate(from)).replace("{to}", fmtDate(to))
+    : from ? t().invFrom.replace("{from}", fmtDate(from))
+    : to ? t().invTo.replace("{to}", fmtDate(to))
+    : t().invAllTime;
   sendEvent({ action:"invoice", client: invClient, from, to, period, email, user: state.user || "", org: state.org || "", orgName: orgCfg().he });
   closeInvoice();
   toast(t().invSent);
