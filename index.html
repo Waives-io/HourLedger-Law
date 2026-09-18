@@ -316,6 +316,27 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .kv .k{color:var(--ink-soft);font-weight:600}
 .kv .v{font-weight:700;text-align:end;word-break:break-all;direction:ltr}
 .hook-form{padding:12px 0 4px;border-bottom:1px solid var(--line);margin-bottom:6px}
+select.control{appearance:none;-webkit-appearance:none;padding-inline-end:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7f96' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 12px center;background-size:16px;cursor:pointer}
+html[dir="ltr"] select.control{background-position:right 12px center}
+/* team card */
+.member{display:flex;align-items:center;gap:8px;padding:10px 13px;border-bottom:1px solid var(--line);background:var(--white);flex-wrap:wrap}
+.member:last-child{border-bottom:0}
+.member .mwho{flex:1 1 160px;min-width:0}
+.member .mname{font-size:14.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.member .mmail{font-size:12px;color:var(--ink-faint);direction:ltr;text-align:start;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.member .mrole,.member .msup{flex:0 0 auto;padding:7px 32px 7px 10px;font-size:13px;width:auto;min-width:110px}
+.member .mtag{font-size:12px;font-weight:700;color:var(--navy);background:var(--surface-2);border-radius:var(--r-pill);padding:4px 10px;flex:none}
+.invite-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.invite-form .control{padding:10px 12px;font-size:14.5px}
+.invite-form .full{grid-column:1 / -1}
+.invite-link{display:flex;gap:8px;align-items:center;margin-top:10px}
+.invite-link .control{flex:1;font-size:13px;direction:ltr;text-align:left;padding:9px 12px}
+.invite-row{display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--line);background:var(--white);font-size:13.5px}
+.invite-row:last-child{border-bottom:0}
+.invite-row .icode{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:700;direction:ltr;letter-spacing:1px}
+.invite-row .imeta{flex:1;min-width:0;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.invite-row .icopy{border:1px solid var(--line);background:var(--white);border-radius:var(--r-sm);padding:5px 10px;font-size:12.5px;font-weight:700;color:var(--navy)}
+@media (max-width:520px){.invite-form{grid-template-columns:1fr}}
 .hook-form label{display:block;font-weight:700;font-size:13.5px;margin-bottom:6px}
 .hook-row{display:flex;gap:8px}
 .hook-row .control{flex:1;min-width:0;padding:10px 12px;font-size:13.5px;font-family:ui-monospace,Menlo,Consolas,monospace}
@@ -440,9 +461,14 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 
     <!-- first run on this device -->
     <div id="setupPanel" class="hidden">
+      <div class="notice hidden" id="suInviteInfo"></div>
       <div class="field" id="suFirmField">
         <label for="suFirm" data-i18n="fFirm">שם המשרד</label>
         <input type="text" id="suFirm" class="control">
+      </div>
+      <div class="field hidden" id="suNameField">
+        <label for="suName" data-i18n="fName">שם מלא</label>
+        <input type="text" id="suName" class="control" autocomplete="name">
       </div>
       <div class="field">
         <label for="suEmail" data-i18n="fEmail">אימייל</label>
@@ -459,8 +485,12 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <div class="field">
         <label for="suPin" data-i18n="fPinNew">קוד כניסה מהיר<span class="hint" data-i18n="fPinHint">קוד בן 4 ספרות, לכניסות הבאות במכשיר הזה</span></label>
         <input type="password" id="suPin" class="control pin" inputmode="numeric" maxlength="4" autocomplete="off" dir="ltr">
-        <span class="err" id="setupErr"></span>
       </div>
+      <div class="field hidden" id="suInviteField">
+        <label for="suInvite"><span data-i18n="fInvite">קוד הזמנה</span><span class="hint" data-i18n="fInviteHint">רק אם הוזמנת למשרד קיים</span></label>
+        <input type="text" id="suInvite" class="control" autocomplete="off" autocapitalize="characters" spellcheck="false" dir="ltr">
+      </div>
+      <span class="err" id="setupErr"></span>
       <button type="button" class="btn btn-primary btn-block" id="setupBtn" data-i18n="createAccount">פתיחת חשבון</button>
       <div class="login-note" data-i18n="setupNote">החשבון נשמר במכשיר הזה. אחרי הפתיחה מזינים את רשימת הלקוחות</div>
       <button type="button" class="link-btn" id="toLogin" data-i18n="toLogin">כבר יש חשבון? כניסה</button>
@@ -540,7 +570,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <h1 class="card-title" data-i18n="clientsTitle">רשימת לקוחות</h1>
       <p class="card-sub" data-i18n="clientsSub">הוספה והסרה של לקוחות הרשימה הנפתחת</p>
       <div class="list" id="clientList"></div>
-      <div class="add-row">
+      <div class="add-row" id="clientAddRow">
         <textarea class="control" id="newClient" rows="2" placeholder="שם לקוח חדש" data-i18n-ph="phNewClient"></textarea>
         <button type="button" class="btn btn-primary" id="addClient" data-i18n="add">הוספה</button>
       </div>
@@ -551,7 +581,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <h1 class="card-title" data-i18n="catsTitle">קטגוריות חיוב</h1>
       <p class="card-sub" data-i18n="catsSub">הוספה והסרה של הערכים בשדה "עבור מה לחייב"</p>
       <div class="list" id="catList"></div>
-      <div class="add-row">
+      <div class="add-row" id="catAddRow">
         <input type="text" class="control" id="newCat" placeholder="קטגוריה חדשה" data-i18n-ph="phNewCat">
         <button type="button" class="btn btn-primary" id="addCat" data-i18n="add">הוספה</button>
       </div>
@@ -562,6 +592,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
       <h1 class="card-title" data-i18n="accountTitle">חשבון וסנכרון</h1>
       <div class="kv"><span class="k" data-i18n="kUser">משתמש</span><span class="v" id="kvUser"></span></div>
       <div class="kv"><span class="k" data-i18n="kOrg">משרד</span><span class="v" id="kvOrg"></span></div>
+      <div class="kv hidden" id="kvRoleRow"><span class="k" data-i18n="kRole">תפקיד</span><span class="v" id="kvRole"></span></div>
       <div class="kv"><span class="k" data-i18n="kCloud">חשבון ענן</span><span class="v" id="kvCloud"></span></div>
       <div class="kv"><span class="k" data-i18n="kSync">סנכרון לגוגל שיטס</span><span class="v" id="kvSync"></span></div>
       <div class="hook-form">
@@ -581,6 +612,29 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
         <button type="button" class="btn btn-ghost hidden" id="lockBtn" data-i18n="lock">נעילה</button>
         <button type="button" class="btn btn-danger" id="logoutBtn" data-i18n="logout">התנתקות</button>
       </div>
+    </div>
+
+    <div class="card hidden" id="teamCard">
+      <h1 class="card-title" data-i18n="teamTitle">צוות המשרד</h1>
+      <p class="card-sub" data-i18n="teamSub">עורכי דין ומתלמדים במשרד. עו״ד רואה ומתקן את הדיווחים של המתלמדים שתחתיו; מתלמד רואה רק את שלו</p>
+      <div class="list" id="teamList"></div>
+      <h2 class="card-title" style="font-size:16px;margin-top:18px" data-i18n="inviteTitle">הזמנה לצוות</h2>
+      <div class="invite-form">
+        <select class="control" id="invRole">
+          <option value="lawyer" data-i18n="roleLawyer">עורך/ת דין</option>
+          <option value="trainee" selected data-i18n="roleTrainee">מתלמד/ת</option>
+        </select>
+        <select class="control" id="invSup"></select>
+        <input type="email" class="control full" id="invEmail" placeholder="אימייל (לא חובה)" data-i18n-ph="phInvEmail" dir="ltr" autocomplete="off">
+        <button type="button" class="btn btn-primary full" id="invCreate" data-i18n="inviteCreate">יצירת קישור הזמנה</button>
+      </div>
+      <div class="invite-link hidden" id="invLinkWrap">
+        <input type="text" class="control" id="invLink" readonly>
+        <button type="button" class="btn btn-ghost" id="invCopy" data-i18n="copy">העתקה</button>
+      </div>
+      <span class="hint" data-i18n="inviteHint">שולחים את הקישור למוזמן/ת; הוא/היא פותח/ת חשבון והקוד מצרף אותו/ה למשרד</span>
+      <div class="list hidden" id="inviteList" style="margin-top:12px"></div>
+      <span class="err" id="teamErr"></span>
     </div>
 
     <div class="card" id="securityCard">
@@ -691,10 +745,13 @@ const cloudMode = () => !!sb;
    the Settings field is hidden and nothing saved in Supabase/localStorage can replace it.
    `invoicing: true` shows the "create invoice" button in the dashboard — only for deployments
    whose Make scenario has the `action = invoice` / `invoice_preview` routes. To onboard another office,
-   copy the repo and change these two lines (see .claude/skills/hourledger-new-office). */
+   copy the repo and change these two lines (see .claude/skills/hourledger-new-office).
+   `teams: true` turns on the multi-user office (roles, invites, per-reporter entries) — needs the
+   "teams" section of supabase/schema.sql on the project. Off = every account is a one-person office. */
 const FIRM = {
   name: 'עו"ד אורן וינברג',
   invoicing: false,
+  teams: false,
   webhook: "https://hook.eu1.make.com/3f461zbp81thyc76u95jzfs3yn6i5p1r"
 };
 const WEINBERG_WEBHOOK = FIRM.webhook;
@@ -828,6 +885,16 @@ const I18N = {
     inUse:"בשימוש",
     accountTitle:"חשבון וסנכרון", kUser:"משתמש", kOrg:"משרד",
     kSync:"סנכרון לגוגל שיטס", kPending:"ממתין לשליחה",
+    kRole:"תפקיד", roleOwner:"ראשי/ת", roleLawyer:"עורך/ת דין", roleTrainee:"מתלמד/ת", supervisedBy:"אחראי/ת",
+    fName:"שם מלא", fInvite:"קוד הזמנה", fInviteHint:"רק אם הוזמנת למשרד קיים",
+    inviteJoin:"מצטרפים למשרד", inviteAs:"בתפקיד", errInvite:"קוד ההזמנה לא תקין או כבר נוצל", errInviteEmail:"ההזמנה הזו נשלחה לכתובת אימייל אחרת",
+    teamTitle:"צוות המשרד", teamSub:"עורכי דין ומתלמדים במשרד. עו״ד רואה ומתקן את הדיווחים של המתלמדים שתחתיו; מתלמד רואה רק את שלו",
+    inviteTitle:"הזמנה לצוות", inviteCreate:"יצירת קישור הזמנה", copy:"העתקה", copied:"הקישור הועתק", phInvEmail:"אימייל (לא חובה)",
+    inviteHint:"שולחים את הקישור למוזמן/ת; הוא/היא פותח/ת חשבון והקוד מצרף אותו/ה למשרד",
+    noSupervisor:"ללא אחראי/ת", you:"את/ה", pendingInvites:"הזמנות שטרם נוצלו", inviteDeleted:"ההזמנה בוטלה",
+    confirmRemoveMember:"להסיר את החבר/ה מהמשרד? הדיווחים שלו/ה יישארו בדשבורד, אבל הוא/היא לא יוכל/תוכל להיכנס יותר.",
+    memberRemoved:"הוסר/ה מהמשרד", teamSaved:"נשמר", removedFromOffice:"החשבון הוסר מהמשרד — פנו למנהל/ת המשרד",
+    clientsReadOnly:"רשימת הלקוחות מנוהלת על ידי מנהל/ת המשרד", errClientNotInList:"יש לבחור לקוח מהרשימה",
     syncOn:"פעיל", syncOff:"לא מוגדר", syncFixed:"פעיל (קבוע לאתר זה)", retrySync:"שליחה חוזרת", logout:"התנתקות",
     pending:"ממתין לסנכרון", sent:"נשלח לסנכרון", allSent:"הכול סונכרן",
     months:["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"],
@@ -922,6 +989,16 @@ const I18N = {
     inUse:"in use",
     accountTitle:"Account & sync", kUser:"User", kOrg:"Office",
     kSync:"Google Sheets sync", kPending:"Waiting to send",
+    kRole:"Role", roleOwner:"Owner", roleLawyer:"Lawyer", roleTrainee:"Trainee", supervisedBy:"Supervisor",
+    fName:"Full name", fInvite:"Invite code", fInviteHint:"only if you were invited to an existing office",
+    inviteJoin:"Joining", inviteAs:"as", errInvite:"This invite code is invalid or already used", errInviteEmail:"This invite was sent to a different email address",
+    teamTitle:"Office team", teamSub:"Lawyers and trainees in the office. A lawyer sees and corrects the entries of their trainees; a trainee sees only their own",
+    inviteTitle:"Invite to the team", inviteCreate:"Create invite link", copy:"Copy", copied:"Link copied", phInvEmail:"Email (optional)",
+    inviteHint:"Send the link to the invitee; they open an account and the code joins them to the office",
+    noSupervisor:"No supervisor", you:"you", pendingInvites:"Unused invites", inviteDeleted:"Invite cancelled",
+    confirmRemoveMember:"Remove this member from the office? Their entries stay in the dashboard, but they will no longer be able to sign in.",
+    memberRemoved:"Removed from the office", teamSaved:"Saved", removedFromOffice:"This account was removed from the office — contact the office owner",
+    clientsReadOnly:"The client list is managed by the office owner", errClientNotInList:"Choose a client from the list",
     syncOn:"Active", syncOff:"Not configured", syncFixed:"Active (fixed for this site)", retrySync:"Retry sync", logout:"Sign out",
     pending:"waiting to sync", sent:"Synced", allSent:"Everything synced",
     months:["January","February","March","April","May","June","July","August","September","October","November","December"],
@@ -969,6 +1046,14 @@ function setClientMeta(name, patch){
   if(FIRM.invoicing && validTaxId(m[name].taxId)) sendEvent({ action:"client", client: name, clientId: m[name].taxId, email: m[name].email || "", org: state.org || "", orgName: orgCfg().he });
 }
 const clientTaxId = name => (clientMeta()[name] || {}).taxId || "";
+/* ---------- Teams ---------- */
+const teamsOn  = () => !!(FIRM.teams && state.cloud);
+const isOwner  = () => !teamsOn() || !!(state.me && state.me.role === "owner");
+const myId     = () => cloudUser ? cloudUser.id : null;
+const memberOf = id => state.team.find(p => p.user_id === id) || null;
+const memberName = id => { const m = memberOf(id); return m ? (m.display_name || m.email) : ""; };
+const roleLabel  = r => ({ owner: t().roleOwner, lawyer: t().roleLawyer, trainee: t().roleTrainee })[r] || r || "";
+const INVITE_CODE = (new URLSearchParams(location.search).get("invite") || "").trim().toUpperCase();
 const validTaxId = v => /^\d{9}$/.test(v);
 function load(key, fallback){
   try{ const v = localStorage.getItem(key); return v == null ? fallback : JSON.parse(v); }
@@ -990,6 +1075,9 @@ const state = {
   cloudOut: [],
   cloud: false,
   orgInfo: null,
+  me: null,        // teams: { id, role, supervisorId, name } of the signed-in member
+  team: [],        // teams: the office roster (profiles rows)
+  invites: [],     // teams, owner only: unused invite codes
   view: "entry",
   dashMode: "client",
   period: "month",
@@ -1180,7 +1268,25 @@ async function doLogin(){
   startSession(user.email, user.org);
 }
 
+/* teams: the invite code typed (or carried in ?invite=) is checked against Supabase and the office is shown before signup */
+let inviteLookup = 0;
+async function checkInvite(){
+  const box = $("#suInviteInfo");
+  const code = $("#suInvite").value.trim().toUpperCase();
+  $("#suInvite").value = code;
+  if(!code || !sb){ box.classList.add("hidden"); box.textContent = ""; return null; }
+  const n = ++inviteLookup;
+  const { data, error } = await sb.rpc("invite_info", { code });
+  if(n !== inviteLookup) return null;   // a newer lookup is on its way
+  const inv = !error && data && data[0];
+  if(!inv){ box.classList.remove("hidden"); box.textContent = t().errInvite; return null; }
+  box.classList.remove("hidden");
+  box.innerHTML = `${esc(t().inviteJoin)} <b style="direction:inherit">${esc(inv.org_name)}</b> ${esc(t().inviteAs)} ${esc(roleLabel(inv.role))}${inv.supervisor_name ? ` · ${esc(t().supervisedBy)} ${esc(inv.supervisor_name)}` : ""}`;
+  return inv;
+}
 async function doSetup(){
+  const invite = FIRM.teams ? $("#suInvite").value.trim().toUpperCase() : "";
+  const name  = FIRM.teams ? $("#suName").value.trim() : "";
   const firm  = FIRM.name || $("#suFirm").value.trim();
   const email = $("#suEmail").value.trim().toLowerCase();
   const pass  = $("#suPass").value;
@@ -1188,7 +1294,7 @@ async function doSetup(){
   const pin   = $("#suPin").value.trim();
   const err   = $("#setupErr");
   err.textContent = "";
-  if(!firm || !email || !pass || !pin){ err.textContent = t().errFields; return; }
+  if((!firm && !invite) || !email || !pass || !pin || (FIRM.teams && cloudMode() && !name)){ err.textContent = t().errFields; return; }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent = t().errEmail; return; }
   if(pass.length < 6){ err.textContent = t().errShortPass; return; }
   if(pass !== pass2){ err.textContent = t().errMatch; return; }
@@ -1198,15 +1304,25 @@ async function doSetup(){
     const ph = await pinHash(email, pin);
     if(ph === null){ err.textContent = t().errCrypto; return; }
     $("#setupBtn").disabled = true;
-    const { data, error } = await sb.auth.signUp({ email, password: pass, options:{ data:{ firm, webhook: FIRM.webhook || "" }, emailRedirectTo: SITE_URL } });
+    let inv = null;
+    if(invite){
+      inv = await checkInvite();
+      if(!inv){ $("#setupBtn").disabled = false; err.textContent = t().errInvite; return; }
+      if(inv.email && inv.email.toLowerCase() !== email){ $("#setupBtn").disabled = false; err.textContent = t().errInviteEmail; return; }
+    }
+    const meta = { firm: inv ? inv.org_name : firm, webhook: FIRM.webhook || "", name };
+    if(inv) meta.invite = invite;   // handle_new_user joins the existing office instead of opening a new one
+    const { data, error } = await sb.auth.signUp({ email, password: pass, options:{ data: meta, emailRedirectTo: SITE_URL } });
     $("#setupBtn").disabled = false;
     if(error){ err.textContent = cloudErr(error, t().errCloud); return; }
     // Supabase returns a user with no identities when the email is already registered
     if(data.user && Array.isArray(data.user.identities) && !data.user.identities.length){ err.textContent = t().errTaken; return; }
-    upsertLocalAccount({ email, cloud:true, pinHash: ph, firm });
+    upsertLocalAccount({ email, cloud:true, pinHash: ph, firm: meta.firm });
     store(KA.last, email);
-    ["#suFirm","#suEmail","#suPass","#suPass2","#suPin"].forEach(sel => $(sel).value = "");
-    sendEvent({ action:"signup", user:email, org:"cloud", orgName:firm });
+    ["#suFirm","#suName","#suEmail","#suPass","#suPass2","#suPin","#suInvite"].forEach(sel => $(sel).value = "");
+    $("#suInviteInfo").classList.add("hidden");
+    if(INVITE_CODE) history.replaceState(null, "", location.pathname);
+    sendEvent({ action:"signup", user:email, org:"cloud", orgName:meta.firm, role: inv ? inv.role : "owner", userName: name });
     if(data.session){
       cloudUser = data.user;
       store(K.session, { email, at:new Date().toISOString() });
@@ -1362,6 +1478,7 @@ function clearSessionUI(){
   try{ localStorage.removeItem(K.session); }catch(e){}
   state.user = null; state.org = null; state.cloud = false; state.orgInfo = null;
   state.records = []; state.clients = []; state.categories = []; state.outbox = []; state.cloudOut = [];
+  state.me = null; state.team = []; state.invites = [];
   document.body.classList.remove("authed");
   $("#appView").classList.add("hidden");
   $("#loginView").classList.remove("hidden");
@@ -1406,11 +1523,22 @@ function cloudErr(error, fallback){
 /* signed-in cloud user → load the org, open the app from cache, then refresh from the cloud */
 async function enterCloud(user){
   const email = user.email.toLowerCase();
-  let info = null;
+  let info = null, me = null, removed = false;
   try{
-    const { data } = await sb.from("profiles").select("org_id, orgs(id,name,webhook)").eq("user_id", user.id).maybeSingle();
-    if(data && data.orgs) info = { id: data.orgs.id, name: data.orgs.name, webhook: data.orgs.webhook };
+    let q = await sb.from("profiles").select("org_id, role, supervisor_id, display_name, orgs(id,name,webhook)").eq("user_id", user.id).maybeSingle();
+    if(q.error) q = await sb.from("profiles").select("org_id, orgs(id,name,webhook)").eq("user_id", user.id).maybeSingle();   // project without the teams columns
+    if(q.data && q.data.orgs){
+      info = { id: q.data.orgs.id, name: q.data.orgs.name, webhook: q.data.orgs.webhook };
+      me = { id: user.id, role: q.data.role || "owner", supervisorId: q.data.supervisor_id || null, name: q.data.display_name || "" };
+    }else if(!q.error){
+      removed = true;   // the query worked and found no profile: the owner removed this account from the office
+    }
   }catch(e){ /* offline — fall back to the cached org below */ }
+  if(removed && FIRM.teams){
+    try{ await sb.auth.signOut(); }catch(e){}
+    cloudUser = null;
+    showPanel("loginPanel"); $("#loginErr").textContent = t().removedFromOffice; return;
+  }
   if(!info){
     const acc = findAccount(email);
     if(acc && acc.cloud && acc.org) info = { id: acc.org, name: acc.firm || "", webhook: acc.webhook || "" };
@@ -1419,20 +1547,27 @@ async function enterCloud(user){
   cloudUser = user;
   state.cloud = true;
   state.orgInfo = info;
+  state.me = me || { id: user.id, role: "owner", supervisorId: null, name: "" };
   upsertLocalAccount({ email, cloud:true, org: info.id, firm: info.name, webhook: info.webhook || "" });
   store(K.session, { email, org: info.id, at:new Date().toISOString() });
   startSession(email, info.id);
   const fresh = await pullCloud();
   if(fresh) offerLocalImport();
 }
-const recToRow = r => ({
-  org_id: state.orgInfo.id, id: r.id, group_id: r.groupId || r.id, date: r.date, client: r.client,
-  category: r.category, hours: r.hours, notes: r.notes || "", other_text: r.otherText || "", user_email: state.user || "",
-  created_at: r.createdAt || new Date().toISOString(), updated_at: r.updatedAt || r.createdAt || new Date().toISOString()
-});
+const recToRow = r => {
+  const row = {
+    org_id: state.orgInfo.id, id: r.id, group_id: r.groupId || r.id, date: r.date, client: r.client,
+    category: r.category, hours: r.hours, notes: r.notes || "", other_text: r.otherText || "",
+    user_email: r.userEmail || state.user || "",   // the original reporter, also when a supervisor corrects the line
+    created_at: r.createdAt || new Date().toISOString(), updated_at: r.updatedAt || r.createdAt || new Date().toISOString()
+  };
+  if(FIRM.teams) row.user_id = r.userId || myId();   // column exists only on projects with the teams schema
+  return row;
+};
 const rowToRec = x => ({
   id: x.id, groupId: x.group_id || x.id, date: x.date, client: x.client, category: x.category,
-  hours: Number(x.hours), notes: x.notes || "", otherText: x.other_text || "", createdAt: x.created_at, updatedAt: x.updated_at
+  hours: Number(x.hours), notes: x.notes || "", otherText: x.other_text || "", createdAt: x.created_at, updatedAt: x.updated_at,
+  userId: x.user_id || null, userEmail: x.user_email || ""
 });
 /* replace the local cache with the cloud copy — skipped while offline edits are still waiting */
 async function pullCloud(){
@@ -1441,14 +1576,24 @@ async function pullCloud(){
   if(state.cloudOut.length) return false;
   const org = state.orgInfo.id;
   try{
-    const [c, k, r, o] = await Promise.all([
+    const [c, k, r, o, p] = await Promise.all([
       sb.from("clients").select("name,tax_id,email").eq("org_id", org).order("name")
         .then(r => r.error ? sb.from("clients").select("name").eq("org_id", org).order("name") : r),   // older schema without the billing columns
       sb.from("categories").select("id,he,en,sort").eq("org_id", org).order("sort"),
       sb.from("records").select("*").eq("org_id", org),
-      sb.from("orgs").select("name,webhook").eq("id", org).maybeSingle()
+      sb.from("orgs").select("name,webhook").eq("id", org).maybeSingle(),
+      FIRM.teams ? sb.from("profiles").select("user_id,email,role,supervisor_id,display_name,created_at").eq("org_id", org).order("created_at") : Promise.resolve({ data: null })
     ]);
     if(c.error || k.error || r.error) throw (c.error || k.error || r.error);
+    if(p.data){
+      state.team = p.data;
+      const mine = memberOf(myId());
+      if(mine) state.me = { id: mine.user_id, role: mine.role || "owner", supervisorId: mine.supervisor_id || null, name: mine.display_name || "" };
+      if(isOwner()){
+        const inv = await sb.from("invites").select("*").eq("org_id", org).is("used_at", null).order("created_at");
+        state.invites = inv.data || [];
+      }
+    }
     if(o.data){ state.orgInfo.name = o.data.name; state.orgInfo.webhook = o.data.webhook || ""; upsertLocalAccount({ email: state.user, firm: o.data.name, webhook: o.data.webhook || "" }); }
     state.clients = c.data.map(x => x.name);
     if(c.data.some(x => "email" in x)){
@@ -1707,7 +1852,7 @@ function createForm(root, prefix, mode, dateSlot){
     const matches = q ? list.filter(c => norm(c).includes(q)) : list.slice();
     options = matches.map(c => ({type:"existing", value:c}));
     const exact = list.some(c => norm(c) === q);
-    if(q && !exact) options.push({type:"new", value:cliEl.value.trim()});
+    if(q && !exact && isOwner()) options.push({type:"new", value:cliEl.value.trim()});
     listEl.innerHTML = options.length
       ? options.map((o,i) => o.type === "new"
           ? `<div class="combo-opt new" role="option" aria-selected="false" data-i="${i}"><span class="plus">+</span>${esc(t().addNew)} ${esc(o.value)}</div>`
@@ -1933,6 +2078,7 @@ function createForm(root, prefix, mode, dateSlot){
       const fail = (key, el, msg) => { $(`[data-e="${key}"]`, key === "date" && dateSlot ? dateSlot : root).textContent = msg; if(el) el.classList.add("invalid"); ok = false; };
       if(!v.date) fail("date", dateEl, t().errDate);
       if(!v.client) fail("client", cliEl, t().errClient);
+      else if(!isOwner() && !state.clients.some(c => norm(c) === norm(v.client))) fail("client", cliEl, t().errClientNotInList);
       if(!v.lines.length) fail("cats", null, t().errCats);
       const missing = v.lines.filter(l => !l.hours);
       if(v.lines.length && missing.length){
@@ -2003,7 +2149,9 @@ function saveEntry(){
     hours: l.hours,
     otherText: l.otherText || "",
     notes: v.notes,
-    createdAt: created
+    createdAt: created,
+    userId: myId(),
+    userEmail: state.user || ""
   }));
   rows.forEach(r => state.records.push(r));
   saveOrgData();
@@ -2072,7 +2220,7 @@ function rowHTML(r, showClient){
 function renderRecent(){
   // "recent" = the last entries *reported*, not the latest dates — a back-dated entry still shows up here
   const key = r => (r.createdAt || r.date) + r.date;
-  const recs = state.records.slice()
+  const recs = state.records.filter(r => !teamsOn() || !r.userId || r.userId === myId())   // team mode: the member's own reports
     .sort((a,b) => key(b).localeCompare(key(a)))
     .slice(0,6);
   $("#recentList").innerHTML = recs.length ? recs.map(r => rowHTML(r, true)).join("") : `<div class="empty">${esc(t().noData)}</div>`;
@@ -2127,7 +2275,7 @@ function renderDash(){
     const open = !!state.openGroups[k];
     const name = mode === "client" ? k : mode === "date" ? fmtDate(k) : catLabel(k);
     const count = rows.length + " " + (rows.length === 1 ? t().entry : t().entries);
-    const tools = mode === "client" && FIRM.invoicing && orgCfg().webhook
+    const tools = mode === "client" && FIRM.invoicing && orgCfg().webhook && isOwner()
       ? `<div class="group-tools"><button type="button" class="btn btn-ghost btn-sm" data-invoice="${esc(k)}"${validTaxId(clientTaxId(k)) ? "" : ` data-notax="1" title="${esc(t().invNoTax)}"`}>${esc(t().invBtn)} · ${esc(k)}</button></div>` : "";
     const inner = subTreeHTML(k, rows, mode) + tools;
     return `<div class="group">
@@ -2148,22 +2296,33 @@ function renderSettings(){
     usedClients[r.client] = (usedClients[r.client]||0) + 1;
     usedCats[r.category] = (usedCats[r.category]||0) + 1;
   });
-  const meta = FIRM.invoicing ? clientMeta() : {};
+  const edit = isOwner();   // team mode: lawyers and trainees only pick from the lists the owner keeps
+  const billing = FIRM.invoicing && edit;
+  const meta = billing ? clientMeta() : {};
   $("#clientList").innerHTML = state.clients.length
-    ? state.clients.map(c => `<div class="list-item${FIRM.invoicing ? " list-item-billing" : ""}">
+    ? state.clients.map(c => `<div class="list-item${billing ? " list-item-billing" : ""}">
         <span class="lname">${esc(c)}</span>
-        ${FIRM.invoicing ? `<input type="text" inputmode="numeric" class="control ltax" data-tax-client="${esc(c)}" value="${esc((meta[c] || {}).taxId || "")}" placeholder="${esc(t().invClientTax)}" maxlength="9" autocomplete="off">
+        ${billing ? `<input type="text" inputmode="numeric" class="control ltax" data-tax-client="${esc(c)}" value="${esc((meta[c] || {}).taxId || "")}" placeholder="${esc(t().invClientTax)}" maxlength="9" autocomplete="off">
         <input type="email" class="control lmail" data-mail-client="${esc(c)}" value="${esc((meta[c] || {}).email || "")}" placeholder="${esc(t().invClientMail)}" autocomplete="off">` : ""}
         ${usedClients[c] ? `<span class="lused">${usedClients[c]} ${esc(t().inUse)}</span>` : ""}
-        <button type="button" class="lx" data-del-client="${esc(c)}" aria-label="${esc(t().delete)}">✕</button>
+        ${edit ? `<button type="button" class="lx" data-del-client="${esc(c)}" aria-label="${esc(t().delete)}">✕</button>` : ""}
       </div>`).join("")
     : `<div class="empty">${esc(t().noClientsYet)}</div>`;
 
   $("#catList").innerHTML = state.categories.map(c => `<div class="list-item">
       <span class="lname">${esc(c[state.lang] || c.he || c.en)}</span>
       ${usedCats[c.id] ? `<span class="lused">${usedCats[c.id]} ${esc(t().inUse)}</span>` : ""}
-      <button type="button" class="lx" data-del-cat="${esc(c.id)}" aria-label="${esc(t().delete)}">✕</button>
+      ${edit ? `<button type="button" class="lx" data-del-cat="${esc(c.id)}" aria-label="${esc(t().delete)}">✕</button>` : ""}
     </div>`).join("");
+  $("#clientAddRow").classList.toggle("hidden", !edit);
+  $("#catAddRow").classList.toggle("hidden", !edit);
+  $('[data-i18n="clientsSub"]').textContent = edit ? t().clientsSub : t().clientsReadOnly;
+  $('[data-i18n="catsSub"]').classList.toggle("hidden", !edit);
+
+  $("#kvRoleRow").classList.toggle("hidden", !teamsOn());
+  if(teamsOn()) $("#kvRole").textContent = roleLabel(state.me.role) + (state.me.supervisorId && memberName(state.me.supervisorId) ? ` · ${t().supervisedBy} ${memberName(state.me.supervisorId)}` : "");
+  $("#teamCard").classList.toggle("hidden", !(teamsOn() && edit));
+  if(teamsOn() && edit) renderTeam();
 
   $("#kvUser").textContent = state.user || "";
   $("#kvOrg").textContent = orgCfg()[state.lang] || orgCfg().he;
@@ -2174,6 +2333,95 @@ function renderSettings(){
   $("#importLocalBtn").classList.toggle("hidden", !localOrgsWithData().length);
   updateSyncUI();
 }
+/* ============================================================
+   Team (owner only): roster, roles, supervisors, invites
+   ============================================================ */
+const supervisors = () => state.team.filter(p => p.role === "owner" || p.role === "lawyer");
+function supervisorOptions(selected){
+  return `<option value="">${esc(t().noSupervisor)}</option>` + supervisors().map(p =>
+    `<option value="${esc(p.user_id)}"${p.user_id === selected ? " selected" : ""}>${esc(p.display_name || p.email)}</option>`).join("");
+}
+function inviteLink(code){ return SITE_URL + "?invite=" + encodeURIComponent(code); }
+function renderTeam(){
+  const me = myId();
+  $("#teamList").innerHTML = state.team.map(p => {
+    const self = p.user_id === me;
+    const role = self || p.role === "owner"
+      ? `<span class="mtag">${esc(roleLabel(p.role))}${self ? ` · ${esc(t().you)}` : ""}</span>`
+      : `<select class="control mrole" data-role-of="${esc(p.user_id)}">
+           <option value="lawyer"${p.role === "lawyer" ? " selected" : ""}>${esc(t().roleLawyer)}</option>
+           <option value="trainee"${p.role === "trainee" ? " selected" : ""}>${esc(t().roleTrainee)}</option>
+         </select>`;
+    const sup = p.role === "trainee" ? `<select class="control msup" data-sup-of="${esc(p.user_id)}" aria-label="${esc(t().supervisedBy)}">${supervisorOptions(p.supervisor_id)}</select>` : "";
+    return `<div class="member">
+      <div class="mwho"><div class="mname">${esc(p.display_name || p.email)}</div>${p.display_name ? `<div class="mmail">${esc(p.email)}</div>` : ""}</div>
+      ${role}${sup}
+      ${self ? "" : `<button type="button" class="lx" data-remove-member="${esc(p.user_id)}" aria-label="${esc(t().delete)}">✕</button>`}
+    </div>`;
+  }).join("");
+  const supSel = $("#invSup");
+  const keep = supSel.value;
+  supSel.innerHTML = supervisorOptions(keep || me);
+  supSel.classList.toggle("hidden", $("#invRole").value !== "trainee");
+  const list = $("#inviteList");
+  list.classList.toggle("hidden", !state.invites.length);
+  list.innerHTML = state.invites.map(i => `<div class="invite-row">
+      <span class="icode">${esc(i.code)}</span>
+      <span class="imeta">${esc(roleLabel(i.role))}${i.email ? ` · ${esc(i.email)}` : ""}${i.supervisor_id && memberName(i.supervisor_id) ? ` · ${esc(memberName(i.supervisor_id))}` : ""}</span>
+      <button type="button" class="icopy" data-copy-invite="${esc(i.code)}">${esc(t().copy)}</button>
+      <button type="button" class="lx" data-del-invite="${esc(i.code)}" aria-label="${esc(t().delete)}">✕</button>
+    </div>`).join("");
+}
+async function teamWrite(run){
+  const err = $("#teamErr");
+  err.textContent = "";
+  try{
+    const { error } = await run();
+    if(error) throw error;
+    await pullCloud();
+    renderSettings();
+    return true;
+  }catch(e){ err.textContent = cloudErr(e, t().errCloud); return false; }
+}
+async function createInvite(){
+  const role = $("#invRole").value;
+  const email = $("#invEmail").value.trim().toLowerCase();
+  const supervisor_id = role === "trainee" ? ($("#invSup").value || null) : null;
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ $("#teamErr").textContent = t().errEmail; return; }
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const code = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => alphabet[b % alphabet.length]).join("");
+  const ok = await teamWrite(() => sb.from("invites").insert({ code, org_id: state.orgInfo.id, email: email || null, role, supervisor_id, created_by: myId() }));
+  if(!ok) return;
+  $("#invEmail").value = "";
+  $("#invLink").value = inviteLink(code);
+  $("#invLinkWrap").classList.remove("hidden");
+  copyText(inviteLink(code));
+}
+function copyText(txt){
+  const done = () => toast(t().copied);
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, () => {});
+}
+document.addEventListener("change", e => {
+  const role = e.target.closest("[data-role-of]");
+  if(role){ teamWrite(() => sb.from("profiles").update({ role: role.value, supervisor_id: null }).eq("user_id", role.dataset.roleOf)).then(ok => ok && toast(t().teamSaved)); return; }
+  const sup = e.target.closest("[data-sup-of]");
+  if(sup){ teamWrite(() => sb.from("profiles").update({ supervisor_id: sup.value || null }).eq("user_id", sup.dataset.supOf)).then(ok => ok && toast(t().teamSaved)); return; }
+  if(e.target.id === "invRole") $("#invSup").classList.toggle("hidden", e.target.value !== "trainee");
+});
+document.addEventListener("click", e => {
+  const rm = e.target.closest("[data-remove-member]");
+  if(rm){
+    if(!confirm(t().confirmRemoveMember)) return;
+    teamWrite(() => sb.from("profiles").delete().eq("user_id", rm.dataset.removeMember)).then(ok => ok && toast(t().memberRemoved));
+    return;
+  }
+  const di = e.target.closest("[data-del-invite]");
+  if(di){ teamWrite(() => sb.from("invites").delete().eq("code", di.dataset.delInvite)).then(ok => ok && toast(t().inviteDeleted)); return; }
+  const ci = e.target.closest("[data-copy-invite]");
+  if(ci){ copyText(inviteLink(ci.dataset.copyInvite)); return; }
+  if(e.target.id === "invCreate"){ createInvite(); return; }
+  if(e.target.id === "invCopy"){ copyText($("#invLink").value); return; }
+});
 function renderAll(){ renderRecent(); renderDash(); renderSettings(); }
 
 /* ============================================================
@@ -2281,6 +2529,8 @@ function applyLang(){
   if(state.cloud) $("#logoutBtn").textContent = L.signOutDevice;
   DP.refreshAll();
   $("#suFirmField").classList.toggle("hidden", !!FIRM.name);
+  $("#suNameField").classList.toggle("hidden", !(FIRM.teams && cloudMode()));
+  $("#suInviteField").classList.toggle("hidden", !(FIRM.teams && cloudMode()));
   $("#firmName").textContent = FIRM.name || "";
   $("#firmName").classList.toggle("hidden", !FIRM.name);
   const pinEmail = $("#pinPanel").dataset.email;
@@ -2475,6 +2725,8 @@ $("#loginPass").addEventListener("keydown", e => { if(e.key === "Enter") doLogin
 $("#pinBtn").addEventListener("click", doPin);
 $("#pinInput").addEventListener("keydown", e => { if(e.key === "Enter") doPin(); });
 $("#setupBtn").addEventListener("click", doSetup);
+$("#suInvite").addEventListener("change", checkInvite);
+$("#suInvite").addEventListener("blur", checkInvite);
 $("#suPin").addEventListener("keydown", e => { if(e.key === "Enter") doSetup(); });
 $("#toPassword").addEventListener("click", () => showPanel("loginPanel"));
 $("#toSetup").addEventListener("click", () => showPanel("setupPanel"));
@@ -2773,6 +3025,12 @@ async function boot(){
     }
     // no cloud session on this device: the demo account may still be open locally
     const local = load(K.session, null);
+    if(FIRM.teams && INVITE_CODE){   // arrived through an invite link: straight to signup with the code filled in
+      $("#suInvite").value = INVITE_CODE;
+      showPanel("setupPanel");
+      checkInvite();
+      return;
+    }
     if(local && isDemo(local.email)) startSession(local.email, local.org);
     else openLoginScreen();
     return;
