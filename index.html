@@ -2622,7 +2622,11 @@ async function fetchPreview(inp){
     const res = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body, signal: ctrl.signal });
     if(!res.ok) throw new Error("HTTP " + res.status);
     // one line per sheet row: date|activity|notes|hours|rate|currency
-    const lines = (await res.text()).split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
+    const txt = (await res.text()).trim();
+    // a reply with no "|" is not invoice lines — it is the automation answering something else
+    // (e.g. Make's default "Accepted" when the scenario is off or no route ran)
+    if(txt && !txt.includes("|")) throw new Error("not invoice lines: " + txt.slice(0, 40));
+    const lines = txt.split(/\r?\n/).map(l => l.trim()).filter(Boolean).map(l => {
       const [date, category, notes, hours, rate, currency] = l.split("|");
       return { date, category, notes, hours, rate, currency };
     });
