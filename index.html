@@ -249,6 +249,7 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .inv-client{font-weight:700;font-size:16px;margin:-6px 0 14px}
 .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .inv-grid label,.inv-mail label{display:block;font-weight:700;font-size:13.5px;margin-bottom:6px}
+.inv-grid label{position:relative}   /* the date popup hangs off its own field, not off the whole window */
 .inv-mail{margin-top:14px}
 .list-item .lmail{flex:1.1;min-width:0;padding:7px 10px;font-size:13px;direction:ltr;text-align:left}
 .list-item .ltax{flex:0 0 118px;padding:7px 10px;font-size:13px;direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
@@ -258,9 +259,17 @@ html[dir="rtl"] .group-head .caret{transform:rotate(180deg)}
 .inv-preview{margin-top:16px;border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
 .inv-preview table{width:100%;border-collapse:collapse;font-size:13.5px}
 .inv-preview th,.inv-preview td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;vertical-align:top}
+/* a phone has no room for the rate column: it moves under the activity (.sub) */
+@media (max-width:560px){
+  .inv-preview table{font-size:13px}
+  .inv-preview th,.inv-preview td{padding:8px 7px}
+  .inv-preview .col-rate{display:none}
+}
 .inv-preview th{background:var(--surface);font-size:12.5px;color:var(--ink-soft);font-weight:700}
 .inv-preview td.num,.inv-preview th.num{text-align:left;direction:ltr;font-variant-numeric:tabular-nums;white-space:nowrap}
 .inv-preview .sub{color:var(--ink-faint);font-size:12px}
+.inv-preview .rate-note{display:none}
+@media (max-width:560px){ .inv-preview .rate-note{display:block;direction:rtl} }
 .inv-preview tfoot td{border-bottom:0;font-weight:700}
 .inv-preview tfoot tr.grand td{font-size:15px;background:var(--surface)}
 .inv-wait{padding:18px;text-align:center;color:var(--ink-soft)}
@@ -625,7 +634,7 @@ html[dir="ltr"] select.control{background-position:right 12px center}
           <option value="trainee" selected data-i18n="roleTrainee">מתלמד/ת</option>
         </select>
         <select class="control" id="invSup"></select>
-        <input type="email" class="control full" id="invEmail" placeholder="אימייל (לא חובה)" data-i18n-ph="phInvEmail" dir="ltr" autocomplete="off">
+        <input type="email" class="control full" id="inviteEmail" placeholder="אימייל (לא חובה)" data-i18n-ph="phInvEmail" dir="ltr" autocomplete="off">
         <button type="button" class="btn btn-primary full" id="invCreate" data-i18n="inviteCreate">יצירת קישור הזמנה</button>
       </div>
       <div class="invite-link hidden" id="invLinkWrap">
@@ -2385,14 +2394,14 @@ async function teamWrite(run){
 }
 async function createInvite(){
   const role = $("#invRole").value;
-  const email = $("#invEmail").value.trim().toLowerCase();
+  const email = $("#inviteEmail").value.trim().toLowerCase();
   const supervisor_id = role === "trainee" ? ($("#invSup").value || null) : null;
   if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ $("#teamErr").textContent = t().errEmail; return; }
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const code = Array.from(crypto.getRandomValues(new Uint8Array(8)), b => alphabet[b % alphabet.length]).join("");
   const ok = await teamWrite(() => sb.from("invites").insert({ code, org_id: state.orgInfo.id, email: email || null, role, supervisor_id, created_by: myId() }));
   if(!ok) return;
-  $("#invEmail").value = "";
+  $("#inviteEmail").value = "";
   $("#invLink").value = inviteLink(code);
   $("#invLinkWrap").classList.remove("hidden");
   copyText(inviteLink(code));
@@ -2645,13 +2654,13 @@ function renderPreview(d){
   const vatPct = cur === "NIS" ? (+d.vat || 18) : 0;
   const vat = sub * vatPct / 100;
   box.innerHTML = `<div class="inv-preview"><table>
-    <thead><tr><th>${esc(L.thDate)}</th><th>${esc(L.thActivity)}</th><th class="num">${esc(L.thHours)}</th><th class="num">${esc(L.thRate)}</th><th class="num">${esc(L.thAmount)}</th></tr></thead>
-    <tbody>${lines.map(x => `<tr><td>${esc(x.date)}</td><td>${esc(x.category)}${x.notes ? `<div class="sub">${esc(x.notes)}</div>` : ""}</td><td class="num">${fmtHours(x.hours)}</td><td class="num">${money(x.rate, cur)}</td><td class="num">${money(x.hours * x.rate, cur)}</td></tr>`).join("")}</tbody>
+    <thead><tr><th>${esc(L.thDate)}</th><th>${esc(L.thActivity)}</th><th class="num">${esc(L.thHours)}</th><th class="num col-rate">${esc(L.thRate)}</th><th class="num">${esc(L.thAmount)}</th></tr></thead>
+    <tbody>${lines.map(x => `<tr><td>${esc(x.date)}</td><td>${esc(x.category)}${x.notes ? `<div class="sub">${esc(x.notes)}</div>` : ""}<div class="sub rate-note">${fmtHours(x.hours)} ${esc(L.hoursShort)} × ${money(x.rate, cur)}</div></td><td class="num">${fmtHours(x.hours)}</td><td class="num col-rate">${money(x.rate, cur)}</td><td class="num">${money(x.hours * x.rate, cur)}</td></tr>`).join("")}</tbody>
     <tfoot>
-      <tr><td colspan="2">${esc(L.hoursTotal)}</td><td class="num">${fmtHours(hours)}</td><td></td><td></td></tr>
-      <tr><td colspan="4">${esc(L.subTotal)}</td><td class="num">${money(sub, cur)}</td></tr>
-      ${vatPct ? `<tr><td colspan="4">${esc(L.vat)} ${vatPct}%</td><td class="num">${money(vat, cur)}</td></tr>` : ""}
-      <tr class="grand"><td colspan="4">${esc(L.grandTotal)}</td><td class="num">${money(sub + vat, cur)}</td></tr>
+      <tr><td colspan="2">${esc(L.hoursTotal)}</td><td class="num">${fmtHours(hours)}</td><td class="col-rate"></td><td></td></tr>
+      <tr><td colspan="3">${esc(L.subTotal)}</td><td class="col-rate"></td><td class="num">${money(sub, cur)}</td></tr>
+      ${vatPct ? `<tr><td colspan="3">${esc(L.vat)} ${vatPct}%</td><td class="col-rate"></td><td class="num">${money(vat, cur)}</td></tr>` : ""}
+      <tr class="grand"><td colspan="3">${esc(L.grandTotal)}</td><td class="col-rate"></td><td class="num">${money(sub + vat, cur)}</td></tr>
     </tfoot></table></div>`;
   return true;
 }
@@ -2957,6 +2966,16 @@ const DP = {
     const b = pop.getBoundingClientRect(), pad = 8;
     if(b.right > innerWidth - pad){ pop.style.left = (pop.offsetLeft - (b.right - innerWidth + pad)) + "px"; pop.style.right = "auto"; }
     else if(b.left < pad){ pop.style.left = (pop.offsetLeft + pad - b.left) + "px"; pop.style.right = "auto"; }
+    // no room below (the invoice window on a phone): float the calendar over the screen, above the
+    // field — as part of the panel it would be cut off by the panel's edge
+    if(b.bottom > innerHeight - pad){
+      const r = pop.getBoundingClientRect(), btn = el._dpBtn.getBoundingClientRect();
+      pop.style.position = "fixed";
+      pop.style.left = Math.round(r.left) + "px";
+      pop.style.right = "auto";
+      pop.style.top = Math.round(Math.max(pad, Math.min(btn.top - 6 - r.height, innerHeight - pad - r.height))) + "px";
+      pop.style.bottom = "auto";
+    }
   }
 };
 function attachDatePicker(el){
